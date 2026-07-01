@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { ScreenKey } from "./components/AppSwitcher";
 import ActionModal, { ActionFormState, ActionModalKind } from "./components/ActionModal";
 import LoginModal from "./components/LoginModal";
@@ -199,8 +200,11 @@ export default function App() {
   const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
-    if (!services.ready || !services.auth || !services.db) return;
-    const unsub = onAuthStateChanged(services.auth, async (user) => {
+    if (!services.ready) return;
+    const auth = services.auth;
+    const db = services.db;
+    if (!auth || !db) return;
+    const unsub = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (!user) {
         setCurrentProfile(null);
@@ -208,7 +212,7 @@ export default function App() {
         return;
       }
       try {
-        const snap = await getDoc(doc(services.db, "users", user.uid));
+        const snap = await getDoc(doc(db, "users", user.uid));
         const data = (snap.exists() ? snap.data() : {}) as any;
         const profile: UserProfile = {
           uid: user.uid,
@@ -225,7 +229,7 @@ export default function App() {
         setNotif(profile.notif);
         if (!snap.exists()) {
           await setDoc(
-            doc(services.db, "users", user.uid),
+            doc(db, "users", user.uid),
             {
               name: profile.name,
               email: profile.email,
@@ -242,7 +246,7 @@ export default function App() {
       }
     });
     return () => unsub();
-  }, [services.ready]);
+  }, [services.ready, services.auth, services.db]);
 
   useEffect(() => {
     void loadPublicData();
@@ -1074,7 +1078,7 @@ export default function App() {
     }));
   }, [propertyUploadPreview]);
 
-  const propertyFeaturedTrack = useMemo(
+  const propertyFeaturedTrack = useMemo<CSSProperties>(
     () => ({
       width: "44px",
       height: "26px",
@@ -1086,7 +1090,7 @@ export default function App() {
     }),
     [propDraft.featured]
   );
-  const propertyFeaturedKnob = useMemo(
+  const propertyFeaturedKnob = useMemo<CSSProperties>(
     () => ({
       position: "absolute",
       top: "3px",
