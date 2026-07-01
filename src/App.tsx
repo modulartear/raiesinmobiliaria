@@ -126,7 +126,6 @@ export default function App() {
   const [tab, setTab] = useState<string>("Dashboard");
   const [hover, setHover] = useState<number>(-1);
   const [lightbox, setLightbox] = useState<number>(-1);
-  const [calcMonths, setCalcMonths] = useState<number>(12);
 
   const [properties, setProperties] = useState<PropertyUi[]>(() =>
     normalizeProperties(FALLBACK_PROPERTIES)
@@ -486,7 +485,6 @@ export default function App() {
   function openProperty(id: string) {
     setSelectedPropertyId(id);
     setScreen("property");
-    setCalcMonths(12);
     window.scrollTo(0, 0);
   }
 
@@ -1254,10 +1252,6 @@ export default function App() {
           docs={selectedProperty.docs?.length ? selectedProperty.docs : DEFAULT_DOCS}
           similar={similar}
           price={selectedProperty.priceLabel}
-          months={calcMonths}
-          total={formatCurrency((selectedProperty.price || 0) * calcMonths)}
-          onDecMonths={() => setCalcMonths((m) => Math.max(1, m - 1))}
-          onIncMonths={() => setCalcMonths((m) => Math.min(36, m + 1))}
           onOpenRequest={() => setActionKind("request")}
           onOpenConsult={() => setActionKind("consult")}
           onOpenWhatsapp={openWhatsapp}

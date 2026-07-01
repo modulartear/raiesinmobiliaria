@@ -22,10 +22,6 @@ export default function PropertyScreen({
   docs,
   similar,
   price,
-  months,
-  total,
-  onDecMonths,
-  onIncMonths,
   onOpenRequest,
   onOpenConsult,
   onOpenWhatsapp,
@@ -53,10 +49,6 @@ export default function PropertyScreen({
   docs: string[];
   similar: SimilarCard[];
   price: string;
-  months: number;
-  total: string;
-  onDecMonths: () => void;
-  onIncMonths: () => void;
   onOpenRequest: () => void;
   onOpenConsult: () => void;
   onOpenWhatsapp: () => void;
@@ -369,54 +361,6 @@ export default function PropertyScreen({
                 <span style={css("font-size:14px;color:#9aa0a3")}>/mes</span>
               </div>
 
-              <div
-                style={css(
-                  "background:#F6F7F7;border:1px solid #EDEFEF;border-radius:13px;padding:16px;margin-bottom:18px"
-                )}
-              >
-                <div style={css("font:600 13px 'Plus Jakarta Sans';color:#123A2F;margin-bottom:13px")}>
-                  Calculadora de alquiler
-                </div>
-                <div style={css("display:flex;align-items:center;justify-content:space-between;margin-bottom:12px")}>
-                  <span style={css("font-size:13.5px;color:#5a6460")}>Meses de contrato</span>
-                  <div
-                    style={css(
-                      "display:flex;align-items:center;gap:0;background:#fff;border:1px solid #E2E4E6;border-radius:9px;overflow:hidden"
-                    )}
-                  >
-                    <button
-                      onClick={onDecMonths}
-                      style={css(
-                        "width:32px;height:32px;border:none;background:transparent;color:#205843;cursor:pointer;display:flex;align-items:center;justify-content:center"
-                      )}
-                    >
-                      <MsIcon name="remove" style={{ fontSize: 18 }} />
-                    </button>
-                    <span style={css("width:38px;text-align:center;font:700 14px 'Plus Jakarta Sans';color:#123A2F")}>
-                      {months}
-                    </span>
-                    <button
-                      onClick={onIncMonths}
-                      style={css(
-                        "width:32px;height:32px;border:none;background:transparent;color:#205843;cursor:pointer;display:flex;align-items:center;justify-content:center"
-                      )}
-                    >
-                      <MsIcon name="add" style={{ fontSize: 18 }} />
-                    </button>
-                  </div>
-                </div>
-                <div
-                  style={css(
-                    "display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px dashed #DDE0E1"
-                  )}
-                >
-                  <span style={css("font-size:13.5px;color:#5a6460")}>Total estimado</span>
-                  <span style={css("font-family:'Schibsted Grotesk';font-weight:800;font-size:18px;color:#205843")}>
-                    {total}
-                  </span>
-                </div>
-              </div>
-
               <button
                 onClick={onOpenRequest}
                 style={css(
@@ -543,4 +487,3 @@ export default function PropertyScreen({
     </div>
   );
 }
-
