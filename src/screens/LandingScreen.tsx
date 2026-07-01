@@ -87,13 +87,14 @@ export default function LandingScreen({
   onSubmitChat: () => void;
 }) {
   return (
-    <div data-screen-label="Landing" style={css("background:#EBECEE")}>
+    <div className="landing-screen" data-screen-label="Landing" style={css("background:#EBECEE")}>
       <header
+        className="landing-header"
         style={css(
-          "position:absolute;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:28px;padding:22px 5vw"
+          "position:absolute;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:28px;padding:22px 5vw;flex-wrap:wrap"
         )}
       >
-        <div style={css("display:flex;align-items:center;gap:12px;width:115px;height:69px")}>
+        <div className="landing-brand" style={css("display:flex;align-items:center;gap:12px;width:115px;height:69px")}>
           <span
             style={css(
               "width:115px;height:109px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 18px -6px rgba(0,0,0,.4)"
@@ -106,7 +107,7 @@ export default function LandingScreen({
             />
           </span>
         </div>
-        <nav style={css("display:flex;gap:30px;margin-left:8px")}>
+        <nav className="landing-nav" style={css("display:flex;gap:30px;margin-left:8px;flex-wrap:wrap")}>
           {nav.map((n, i) => (
             <a
               key={n.label}
@@ -122,7 +123,7 @@ export default function LandingScreen({
             </a>
           ))}
         </nav>
-        <div style={css("margin-left:auto;display:flex;align-items:center;gap:12px")}>
+        <div className="landing-header-actions" style={css("margin-left:auto;display:flex;align-items:center;gap:12px")}>
           <button
             onClick={onAuthPrimaryAction}
             style={css(
@@ -135,6 +136,7 @@ export default function LandingScreen({
       </header>
 
       <section
+        className="landing-hero"
         style={css(
           "position:relative;min-height:760px;padding:150px 5vw 130px;overflow:hidden"
         )}
@@ -164,11 +166,12 @@ export default function LandingScreen({
         />
 
         <div
+          className="landing-hero-grid"
           style={css(
             "position:relative;max-width:1340px;margin:0 auto;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center"
           )}
         >
-          <div>
+          <div className="landing-hero-copy">
             <span
               style={css(
                 "display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:rgba(201,163,77,.16);border:1px solid rgba(201,163,77,.4);color:#E7CE92;font:600 12.5px/1 'Plus Jakarta Sans';letter-spacing:.02em;margin-bottom:26px"
@@ -201,7 +204,7 @@ export default function LandingScreen({
               <br />
               Nos encargamos de todo.
             </p>
-            <div style={css("display:flex;gap:14px;margin-top:38px")}>
+            <div className="landing-hero-cta" style={css("display:flex;gap:14px;margin-top:38px;flex-wrap:wrap")}>
               <button
                 onClick={onGoProperty}
                 style={css(
@@ -214,6 +217,7 @@ export default function LandingScreen({
           </div>
 
           <div
+            className="landing-hero-cards"
             style={css(
               "display:flex;flex-direction:column;gap:16px;justify-self:end;width:100%;max-width:380px"
             )}
@@ -255,16 +259,18 @@ export default function LandingScreen({
       </section>
 
       <div
+        className="landing-search-wrap"
         style={css(
           "position:relative;z-index:30;max-width:1240px;margin:-66px auto 0;padding:0 5vw"
         )}
       >
         <div
+          className="landing-search-card"
           style={css(
-            "background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 30px 70px -28px rgba(18,58,47,.4),0 2px 8px rgba(0,0,0,.04);border:1px solid rgba(18,58,47,.06);display:grid;grid-template-columns:1.4fr 1fr 1fr .9fr auto;gap:20px;align-items:end"
+            "background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 30px 70px -28px rgba(18,58,47,.4),0 2px 8px rgba(0,0,0,.04);border:1px solid rgba(18,58,47,.06);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;align-items:end"
           )}
         >
-          <div>
+          <div className="landing-search-field landing-search-field--wide">
             <label
               style={css(
                 "display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:9px"
@@ -281,7 +287,7 @@ export default function LandingScreen({
               )}
             />
           </div>
-          <div>
+          <div className="landing-search-field">
             <label
               style={css(
                 "display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:9px"
@@ -305,7 +311,7 @@ export default function LandingScreen({
               <MsIcon name="location_on" style={{ fontSize: 20, color: "#C9A34D" }} />
             </div>
           </div>
-          <div>
+          <div className="landing-search-field">
             <label
               style={css(
                 "display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:9px"
@@ -335,7 +341,7 @@ export default function LandingScreen({
               <MsIcon name="expand_more" style={{ fontSize: 20, color: "#9aa0a3" }} />
             </div>
           </div>
-          <div>
+          <div className="landing-search-field">
             <label
               style={css(
                 "display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:9px"
@@ -368,6 +374,7 @@ export default function LandingScreen({
             </div>
           </div>
           <button
+            className="landing-search-button"
             onClick={onApplySearch}
             style={css(
               "display:inline-flex;align-items:center;gap:9px;padding:14px 26px;border-radius:12px;border:none;background:#123A2F;color:#fff;font:700 14.5px/1 'Plus Jakarta Sans';cursor:pointer;height:48px;box-shadow:0 12px 26px -10px rgba(18,58,47,.6);transition:.2s"
@@ -379,10 +386,11 @@ export default function LandingScreen({
         </div>
       </div>
 
-      <section style={css("max-width:1240px;margin:64px auto 0;padding:0 5vw")}>
+      <section className="landing-section" style={css("max-width:1240px;margin:64px auto 0;padding:0 5vw")}>
         <div
+          className="landing-section-head"
           style={css(
-            "display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px"
+            "display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap"
           )}
         >
           <div>
@@ -409,7 +417,7 @@ export default function LandingScreen({
             Ver todas <MsIcon name="arrow_forward" style={{ fontSize: 18 }} />
           </a>
         </div>
-        <div style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:22px")}>
+        <div className="landing-properties-grid" style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:22px")}>
           {properties.map((p) => (
             <div
               key={p.id}
@@ -492,8 +500,9 @@ export default function LandingScreen({
         </div>
       </section>
 
-      <section style={css("max-width:1240px;margin:74px auto 90px;padding:0 5vw")}>
+      <section className="landing-section" style={css("max-width:1240px;margin:74px auto 90px;padding:0 5vw")}>
         <div
+          className="landing-steps-layout"
           style={css(
             "display:grid;grid-template-columns:1.55fr 1fr;gap:40px;align-items:center"
           )}
@@ -509,7 +518,7 @@ export default function LandingScreen({
             <p style={css("margin:0 0 34px;color:#6b7570;font-size:15px")}>
               Te ayudamos a verificar si cumplís con los requisitos.
             </p>
-            <div style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:22px")}>
+            <div className="landing-steps-grid" style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:22px")}>
               {steps.map((st) => (
                 <div key={st.title}>
                   <span
@@ -535,6 +544,7 @@ export default function LandingScreen({
           </div>
 
           <div
+            className="landing-verify-card"
             style={css(
               "background:#fff;border-radius:20px;padding:34px 32px;box-shadow:0 26px 60px -28px rgba(18,58,47,.34);border:1px solid rgba(18,58,47,.06)"
             )}
@@ -570,6 +580,7 @@ export default function LandingScreen({
 
       {chatOpen && (
         <div
+          className="landing-chat-panel"
           style={css(
             "position:fixed;right:26px;bottom:96px;z-index:120;width:330px;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08);animation:popIn .35s ease both"
           )}
@@ -651,6 +662,7 @@ export default function LandingScreen({
       )}
 
       <button
+        className="floating-chat-button"
         onClick={onToggleChat}
         style={css(
           "position:fixed;right:26px;bottom:30px;z-index:115;width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(140deg,#205843,#123A2F);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px -12px rgba(18,58,47,.7);animation:floaty 4s ease-in-out infinite"

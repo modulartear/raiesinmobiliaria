@@ -63,10 +63,11 @@ export default function PropertyScreen({
   onToggleChat: () => void;
 }) {
   return (
-    <div data-screen-label="Propiedad" style={css("background:#EBECEE;min-height:100vh")}>
+    <div className="property-screen" data-screen-label="Propiedad" style={css("background:#EBECEE;min-height:100vh")}>
       <header
+        className="property-header"
         style={css(
-          "position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:24px;padding:16px 5vw;background:rgba(18,58,47,.96);backdrop-filter:blur(14px)"
+          "position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:24px;padding:16px 5vw;background:rgba(18,58,47,.96);backdrop-filter:blur(14px);flex-wrap:wrap"
         )}
       >
         <span
@@ -76,7 +77,7 @@ export default function PropertyScreen({
         >
           <img src={logoRaiesUrl} style={css("width:100%;height:100%;object-fit:cover")} />
         </span>
-        <nav style={css("display:flex;gap:26px")}>
+        <nav className="property-nav" style={css("display:flex;gap:26px;flex-wrap:wrap")}>
           {nav.map((n) => (
             <a
               key={n.label}
@@ -101,10 +102,11 @@ export default function PropertyScreen({
         </button>
       </header>
 
-      <div style={css("max-width:1240px;margin:0 auto;padding:30px 5vw 80px")}>
+      <div className="property-content" style={css("max-width:1240px;margin:0 auto;padding:30px 5vw 80px")}>
         <div
+          className="property-title-row"
           style={css(
-            "display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px"
+            "display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:22px;flex-wrap:wrap"
           )}
         >
           <div>
@@ -133,7 +135,7 @@ export default function PropertyScreen({
               {address}
             </div>
           </div>
-          <div style={css("display:flex;gap:10px")}>
+          <div className="property-title-actions" style={css("display:flex;gap:10px;flex-wrap:wrap")}>
             <button
               style={css(
                 "display:inline-flex;align-items:center;gap:7px;padding:11px 17px;border-radius:11px;border:1.5px solid #DDE0E1;background:#fff;color:#3a443f;font:600 13.5px/1 'Plus Jakarta Sans';cursor:pointer"
@@ -154,6 +156,7 @@ export default function PropertyScreen({
         </div>
 
         <div
+          className="property-gallery"
           style={css(
             "display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:10px;height:440px;border-radius:18px;overflow:hidden;margin-bottom:34px"
           )}
@@ -182,8 +185,8 @@ export default function PropertyScreen({
           ))}
         </div>
 
-        <div style={css("display:grid;grid-template-columns:1fr 380px;gap:34px;align-items:start")}>
-          <div>
+        <div className="property-main-grid" style={css("display:grid;grid-template-columns:1fr 380px;gap:34px;align-items:start")}>
+          <div className="property-main-column">
             <div
               style={css(
                 "background:#fff;border-radius:18px;padding:28px 30px;border:1px solid rgba(18,58,47,.07);box-shadow:0 10px 30px -20px rgba(18,58,47,.3);margin-bottom:22px"
@@ -213,7 +216,7 @@ export default function PropertyScreen({
               >
                 Características
               </h2>
-              <div style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:16px")}>
+              <div className="property-features-grid" style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:16px")}>
                 {features.map((f) => (
                   <div
                     key={f.label}
@@ -310,7 +313,7 @@ export default function PropertyScreen({
             >
               Propiedades similares
             </h2>
-            <div style={css("display:grid;grid-template-columns:repeat(3,1fr);gap:18px")}>
+            <div className="property-similar-grid" style={css("display:grid;grid-template-columns:repeat(3,1fr);gap:18px")}>
               {similar.map((sm) => (
                 <div
                   key={sm.title}
@@ -347,7 +350,7 @@ export default function PropertyScreen({
             </div>
           </div>
 
-          <aside style={css("position:sticky;top:90px;display:flex;flex-direction:column;gap:16px")}>
+          <aside className="property-sidebar" style={css("position:sticky;top:90px;display:flex;flex-direction:column;gap:16px")}>
             <div
               style={css(
                 "background:#fff;border-radius:18px;padding:26px 24px;border:1px solid rgba(18,58,47,.08);box-shadow:0 20px 50px -26px rgba(18,58,47,.4)"
@@ -416,6 +419,7 @@ export default function PropertyScreen({
 
       {lightboxOpen && (
         <div
+          className="property-lightbox"
           onClick={onCloseLightbox}
           style={css(
             "position:fixed;inset:0;z-index:300;background:rgba(8,20,16,.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;animation:popIn .25s ease both"
@@ -444,6 +448,7 @@ export default function PropertyScreen({
             <MsIcon name="chevron_left" style={{ fontSize: 28 }} />
           </button>
           <div
+            className="property-lightbox-card"
             onClick={(e) => e.stopPropagation()}
             style={css(
               `width:min(78vw,1000px);height:min(74vh,640px);border-radius:16px;background:${lightboxBg};position:relative;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.8)`
@@ -477,6 +482,7 @@ export default function PropertyScreen({
       )}
 
       <button
+        className="floating-chat-button"
         onClick={onToggleChat}
         style={css(
           "position:fixed;right:26px;bottom:30px;z-index:115;width:60px;height:60px;border-radius:50%;border:none;background:linear-gradient(140deg,#205843,#123A2F);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px -12px rgba(18,58,47,.7);animation:floaty 4s ease-in-out infinite"

@@ -23,16 +23,19 @@ export default function LoginModal({
   if (!open) return null;
   return (
     <div
+      className="modal-shell"
       style={css(
         "position:fixed;inset:0;z-index:420;background:rgba(8,20,16,.72);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px"
       )}
     >
       <div
+        className="modal-card modal-card--login"
         style={css(
           "width:min(460px,100%);background:#fff;border-radius:22px;padding:28px 28px 24px;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08)"
         )}
       >
         <div
+          className="modal-head"
           style={css(
             "display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px"
           )}
@@ -108,4 +111,3 @@ export default function LoginModal({
     </div>
   );
 }
-

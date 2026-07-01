@@ -215,8 +215,9 @@ export default function DashboardScreen({
   onSaveSettings: () => void;
 }) {
   return (
-    <div data-screen-label="Dashboard" style={css("display:flex;min-height:100vh;background:#EBECEE")}>
+    <div className="dashboard-screen" data-screen-label="Dashboard" style={css("display:flex;min-height:100vh;background:#EBECEE")}>
       <aside
+        className="dashboard-sidebar"
         style={css(
           "width:248px;flex:none;background:linear-gradient(180deg,#0d2c23,#123A2F);display:flex;flex-direction:column;padding:22px 16px;position:sticky;top:0;height:100vh"
         )}
@@ -243,7 +244,7 @@ export default function DashboardScreen({
           </div>
         </div>
 
-        <div style={css("display:flex;flex-direction:column;gap:4px;flex:1")}>
+        <div className="dashboard-sidebar-items" style={css("display:flex;flex-direction:column;gap:4px;flex:1")}>
           {sidebarItems.map((it) => (
             <div key={it.label} onClick={it.onClick} style={it.style}>
               <MsIcon name={it.icon} style={{ fontSize: 20 }} /> {it.label}
@@ -262,10 +263,11 @@ export default function DashboardScreen({
         </div>
       </aside>
 
-      <main style={css("flex:1;min-width:0;display:flex;flex-direction:column")}>
+      <main className="dashboard-main" style={css("flex:1;min-width:0;display:flex;flex-direction:column")}>
         <header
+          className="dashboard-topbar"
           style={css(
-            "display:flex;align-items:center;justify-content:space-between;padding:22px 34px;background:#fff;border-bottom:1px solid rgba(18,58,47,.07)"
+            "display:flex;align-items:center;justify-content:space-between;padding:22px 34px;background:#fff;border-bottom:1px solid rgba(18,58,47,.07);gap:16px;flex-wrap:wrap"
           )}
         >
           <div>
@@ -278,7 +280,7 @@ export default function DashboardScreen({
             </h1>
             <div style={css("font-size:13px;color:#8a928e;margin-top:3px")}>{tabSubtitle}</div>
           </div>
-          <div style={css("display:flex;align-items:center;gap:14px")}>
+          <div className="dashboard-topbar-actions" style={css("display:flex;align-items:center;gap:14px;flex-wrap:wrap")}>
             <span
               style={css(
                 "width:42px;height:42px;border-radius:11px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;cursor:pointer;position:relative"
@@ -307,10 +309,10 @@ export default function DashboardScreen({
           </div>
         </header>
 
-        <div style={css("padding:30px 34px;display:flex;flex-direction:column;gap:24px")}>
+        <div className="dashboard-content" style={css("padding:30px 34px;display:flex;flex-direction:column;gap:24px")}>
           {tabDashboard && (
             <>
-              <div style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:20px")}>
+              <div className="dashboard-stats-grid" style={css("display:grid;grid-template-columns:repeat(4,1fr);gap:20px")}>
                 {stats.map((st) => (
                   <div
                     key={st.label}
@@ -346,7 +348,7 @@ export default function DashboardScreen({
                 ))}
               </div>
 
-              <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:24px")}>
+              <div className="dashboard-cards-grid" style={css("display:grid;grid-template-columns:1fr 1fr;gap:24px")}>
                 <div
                   style={css(
                     "background:#fff;border-radius:16px;padding:24px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3)"
@@ -481,8 +483,8 @@ export default function DashboardScreen({
             <>
               {!propFormOpen && (
                 <>
-                  <div style={css("display:flex;align-items:center;justify-content:space-between;gap:16px")}>
-                    <div style={css("display:flex;gap:10px;align-items:center")}>
+                  <div className="dashboard-toolbar" style={css("display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap")}>
+                    <div className="dashboard-toolbar-group" style={css("display:flex;gap:10px;align-items:center;flex-wrap:wrap")}>
                       <div
                         style={css(
                           "display:flex;align-items:center;gap:8px;padding:11px 15px;border-radius:11px;background:#fff;border:1px solid rgba(18,58,47,.1);min-width:300px"
@@ -519,11 +521,13 @@ export default function DashboardScreen({
                   </div>
 
                   <div
+                    className="dashboard-table dashboard-table--properties"
                     style={css(
                       "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
                     )}
                   >
                     <div
+                      className="dashboard-table-row"
                       style={css(
                         "display:grid;grid-template-columns:2.4fr 1fr 1.1fr 1fr .8fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
                       )}
@@ -537,6 +541,7 @@ export default function DashboardScreen({
                     {allProperties.map((p) => (
                       <div
                         key={p.id}
+                        className="dashboard-table-row"
                         style={css(
                           "display:grid;grid-template-columns:2.4fr 1fr 1.1fr 1fr .8fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
                         )}
@@ -581,7 +586,7 @@ export default function DashboardScreen({
 
               {propFormOpen && (
                 <>
-                  <div style={css("display:flex;align-items:center;gap:12px")}>
+                  <div className="dashboard-form-head" style={css("display:flex;align-items:center;gap:12px;flex-wrap:wrap")}>
                     <button
                       onClick={onClosePropForm}
                       style={css(
@@ -600,8 +605,8 @@ export default function DashboardScreen({
                     </h2>
                   </div>
 
-                  <div style={css("display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start")}>
-                    <div style={css("display:flex;flex-direction:column;gap:20px")}>
+                  <div className="dashboard-form-layout" style={css("display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start")}>
+                    <div className="dashboard-form-main" style={css("display:flex;flex-direction:column;gap:20px")}>
                       <div
                         style={css(
                           "background:#fff;border-radius:16px;padding:26px 28px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3)"
@@ -643,7 +648,7 @@ export default function DashboardScreen({
                             </div>
                           </div>
 
-                          <div style={css("display:grid;grid-template-columns:1.4fr 1fr;gap:16px")}>
+                          <div className="dashboard-form-grid-2" style={css("display:grid;grid-template-columns:1.4fr 1fr;gap:16px")}>
                             <div>
                               <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
                                 Dirección
@@ -672,7 +677,7 @@ export default function DashboardScreen({
                             </div>
                           </div>
 
-                          <div style={css("display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px")}>
+                          <div className="dashboard-form-grid-3" style={css("display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px")}>
                             <div>
                               <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
                                 Ambientes
@@ -753,7 +758,7 @@ export default function DashboardScreen({
                       </div>
                     </div>
 
-                    <div style={css("display:flex;flex-direction:column;gap:16px")}>
+                    <div className="dashboard-form-side" style={css("display:flex;flex-direction:column;gap:16px")}>
                       <div
                         style={css(
                           "background:#fff;border-radius:16px;padding:22px 22px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3)"
@@ -793,7 +798,7 @@ export default function DashboardScreen({
                             JPG o PNG · hasta 10 imágenes
                           </div>
                         </div>
-                        <div style={css("display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px")}>
+                        <div className="dashboard-upload-grid" style={css("display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px")}>
                           {propertyUploadPreview.map((img, idx) => (
                             <span key={idx} title={img.label} style={css(`height:48px;border-radius:9px;background:${img.bg}`)} />
                           ))}
@@ -860,11 +865,13 @@ export default function DashboardScreen({
 
           {tabSolicitudes && (
             <div
+              className="dashboard-table dashboard-table--requests"
               style={css(
                 "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
               )}
             >
               <div
+                className="dashboard-table-row"
                 style={css(
                   "display:grid;grid-template-columns:1.6fr 1.6fr 1fr 1fr 1fr .7fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
                 )}
@@ -879,6 +886,7 @@ export default function DashboardScreen({
               {solicitudesFull.map((r, idx) => (
                 <div
                   key={idx}
+                  className="dashboard-table-row"
                   style={css(
                     "display:grid;grid-template-columns:1.6fr 1.6fr 1fr 1fr 1fr .7fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
                   )}
@@ -915,7 +923,7 @@ export default function DashboardScreen({
 
           {tabInquilinos && (
             <>
-              <div style={css("display:flex;align-items:center;justify-content:space-between;gap:16px")}>
+              <div className="dashboard-toolbar" style={css("display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap")}>
                 <div
                   style={css(
                     "display:flex;align-items:center;gap:8px;padding:11px 15px;border-radius:11px;background:#fff;border:1px solid rgba(18,58,47,.1);min-width:300px"
@@ -941,11 +949,13 @@ export default function DashboardScreen({
                 </button>
               </div>
               <div
+                className="dashboard-table dashboard-table--tenants"
                 style={css(
                   "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
                 )}
               >
                 <div
+                  className="dashboard-table-row"
                   style={css(
                     "display:grid;grid-template-columns:1.6fr 1fr 1.8fr 1fr 1fr .7fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
                   )}
@@ -960,6 +970,7 @@ export default function DashboardScreen({
                 {inquilinos.map((t, idx) => (
                   <div
                     key={idx}
+                    className="dashboard-table-row"
                     style={css(
                       "display:grid;grid-template-columns:1.6fr 1fr 1.8fr 1fr 1fr .7fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
                     )}
@@ -997,11 +1008,13 @@ export default function DashboardScreen({
 
           {tabDocumentacion && (
             <div
+              className="dashboard-table dashboard-table--docs"
               style={css(
                 "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
               )}
             >
               <div
+                className="dashboard-table-row"
                 style={css(
                   "display:grid;grid-template-columns:1.6fr 1.8fr 1fr 1fr 1fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
                 )}
@@ -1015,6 +1028,7 @@ export default function DashboardScreen({
               {documentacion.map((d, idx) => (
                 <div
                   key={idx}
+                  className="dashboard-table-row"
                   style={css(
                     "display:grid;grid-template-columns:1.6fr 1.8fr 1fr 1fr 1fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
                   )}
@@ -1056,7 +1070,7 @@ export default function DashboardScreen({
           )}
 
           {tabRequisitos && (
-            <div style={css("display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start")}>
+            <div className="dashboard-settings-grid" style={css("display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start")}>
               <div
                 style={css(
                   "background:#fff;border-radius:16px;padding:24px 26px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3)"
@@ -1149,7 +1163,7 @@ export default function DashboardScreen({
                           </span>
                         </div>
 
-                        <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
+                        <div className="dashboard-form-grid-2" style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
                           <div>
                             <label style={css("display:block;font:600 12px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:7px")}>
                               Recibos garantes (mín.)
@@ -1278,6 +1292,7 @@ export default function DashboardScreen({
 
           {tabConsultas && (
             <div
+              className="dashboard-consult-list"
               style={css(
                 "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
               )}
@@ -1319,7 +1334,7 @@ export default function DashboardScreen({
 
           {tabUsuarios && (
             <>
-              <div style={css("display:flex;align-items:center;justify-content:space-between;gap:16px")}>
+              <div className="dashboard-toolbar" style={css("display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap")}>
                 <div
                   style={css(
                     "display:flex;align-items:center;gap:8px;padding:11px 15px;border-radius:11px;background:#fff;border:1px solid rgba(18,58,47,.1);min-width:300px"
@@ -1345,11 +1360,13 @@ export default function DashboardScreen({
                 </button>
               </div>
               <div
+                className="dashboard-table dashboard-table--users"
                 style={css(
                   "background:#fff;border-radius:16px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3);overflow:hidden"
                 )}
               >
                 <div
+                  className="dashboard-table-row"
                   style={css(
                     "display:grid;grid-template-columns:1.6fr 1.8fr 1fr 1fr .8fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
                   )}
@@ -1363,6 +1380,7 @@ export default function DashboardScreen({
                 {usuarios.map((u, idx) => (
                   <div
                     key={idx}
+                    className="dashboard-table-row"
                     style={css(
                       "display:grid;grid-template-columns:1.6fr 1.8fr 1fr 1fr .8fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
                     )}
@@ -1405,7 +1423,7 @@ export default function DashboardScreen({
           )}
 
           {tabConfig && (
-            <div style={css("display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start")}>
+            <div className="dashboard-config-grid" style={css("display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start")}>
               <div style={css("display:flex;flex-direction:column;gap:20px")}>
                 <div
                   style={css(
@@ -1419,7 +1437,7 @@ export default function DashboardScreen({
                   >
                     Datos de la inmobiliaria
                   </h3>
-                  <div style={css("display:flex;align-items:center;gap:16px;margin-bottom:20px")}>
+                  <div className="dashboard-config-brand" style={css("display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap")}>
                     <span
                       style={css(
                         "width:64px;height:64px;border-radius:50%;background:#fff;border:1px solid #EDEFEF;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px -8px rgba(0,0,0,.25)"
@@ -1436,7 +1454,7 @@ export default function DashboardScreen({
                       Cambiar logo
                     </button>
                   </div>
-                  <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:16px")}>
+                  <div className="dashboard-form-grid-2" style={css("display:grid;grid-template-columns:1fr 1fr;gap:16px")}>
                     <div>
                       <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
                         Nombre

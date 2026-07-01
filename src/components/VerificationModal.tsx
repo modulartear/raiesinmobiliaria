@@ -153,16 +153,19 @@ export default function VerificationModal({
 
   return (
     <div
+      className="modal-shell"
       style={css(
         "position:fixed;inset:0;z-index:410;background:rgba(8,20,16,.62);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px"
       )}
     >
       <div
+        className="modal-card modal-card--verification"
         style={css(
           "width:min(720px,100%);background:#fff;border-radius:22px;padding:28px 28px 24px;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08)"
         )}
       >
         <div
+          className="modal-head"
           style={css(
             "display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px"
           )}
@@ -189,7 +192,7 @@ export default function VerificationModal({
           </button>
         </div>
 
-        <div style={css("display:flex;gap:10px;margin-bottom:18px")}>
+        <div className="verification-steps" style={css("display:flex;gap:10px;margin-bottom:18px")}>
           {[1, 2].map((n) => (
             <div
               key={n}
@@ -276,7 +279,7 @@ export default function VerificationModal({
                 </div>
               </div>
 
-              <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
+              <div className="verification-detail-grid" style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
                 {config.options.slice(0, 2).map((opt) => {
                   const active = opt.key === optionKey;
                   const lines = optionDetailLines(opt);
@@ -340,7 +343,7 @@ export default function VerificationModal({
               </div>
             </div>
 
-            <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:14px")}>
+            <div className="modal-form-grid" style={css("display:grid;grid-template-columns:1fr 1fr;gap:14px")}>
               <div>
                 <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
                   Nombre
@@ -490,7 +493,7 @@ export default function VerificationModal({
               </div>
             </div>
 
-            <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:14px")}>
+            <div className="verification-upload-grid" style={css("display:grid;grid-template-columns:1fr 1fr;gap:14px")}>
               <div style={css("background:#fff;border:1px solid rgba(18,58,47,.08);border-radius:16px;padding:18px 18px")}>
                 <div style={css("display:flex;align-items:center;justify-content:space-between;gap:12px")}>
                   <div>

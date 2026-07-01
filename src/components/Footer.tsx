@@ -12,12 +12,14 @@ export default function Footer({
 }) {
   return (
     <footer
+      className="site-footer"
       style={css(
         "margin-top:90px;background:linear-gradient(125deg,#0d2c23 0%,#123A2F 55%,#1c5040 100%);color:#fff"
       )}
     >
       <div style={css("max-width:1240px;margin:0 auto;padding:58px 5vw 32px")}>
         <div
+          className="site-footer-grid"
           style={css(
             "display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px;align-items:start"
           )}
