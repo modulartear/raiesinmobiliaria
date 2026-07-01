@@ -86,3 +86,17 @@ export type SettingsRecord = {
   whatsapp: string;
 };
 
+export type VerificationOptionConfig = {
+  key: "op1" | "op2";
+  title: string;
+  tenantPayslipRequired: boolean;
+  guarantorPayslipsMin: number;
+  guarantorSeniorityYearsMin: number;
+  deedRequired: boolean;
+  deedLocationLabel?: string;
+};
+
+export type VerificationConfig = {
+  options: VerificationOptionConfig[];
+  preApprovedMessage: string;
+};

@@ -4,6 +4,7 @@ import type { ScreenKey } from "./components/AppSwitcher";
 import ActionModal, { ActionFormState, ActionModalKind } from "./components/ActionModal";
 import LoginModal from "./components/LoginModal";
 import Toast from "./components/Toast";
+import VerificationModal from "./components/VerificationModal";
 import LandingScreen from "./screens/LandingScreen";
 import PropertyScreen from "./screens/PropertyScreen";
 import DashboardScreen from "./screens/DashboardScreen";
@@ -21,6 +22,7 @@ import {
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
+  signInAnonymously,
   signInWithEmailAndPassword,
   signOut,
   User
@@ -32,6 +34,7 @@ import {
   DEFAULT_REQUIREMENTS,
   DEFAULT_SERVICES,
   DEFAULT_SETTINGS,
+  DEFAULT_VERIFICATION_CONFIG,
   FALLBACK_CONSULTATIONS,
   FALLBACK_DOCUMENTS,
   FALLBACK_PROPERTIES,
@@ -47,7 +50,8 @@ import type {
   RentalRequestRecord,
   SettingsRecord,
   TenantRecord,
-  UserRecord
+  UserRecord,
+  VerificationConfig
 } from "./data/models";
 import { formatCurrency, formatDate, formatRelative } from "./lib/format";
 import { badgeStyle, statusKind } from "./lib/ui";
@@ -143,6 +147,9 @@ export default function App() {
   const [requirements, setRequirements] = useState<RequirementRecord[]>(
     () => DEFAULT_REQUIREMENTS
   );
+  const [verificationConfig, setVerificationConfig] = useState<VerificationConfig>(
+    () => DEFAULT_VERIFICATION_CONFIG
+  );
   const [notif, setNotif] = useState<boolean[]>(() => [true, true, false, true]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,6 +169,7 @@ export default function App() {
   const [actionKind, setActionKind] = useState<ActionModalKind | "">("");
   const [actionLoading, setActionLoading] = useState(false);
   const [actionForm, setActionForm] = useState<ActionFormState>(() => defaultActionForm());
+  const [verificationOpen, setVerificationOpen] = useState(false);
 
   const [appError, setAppError] = useState("");
   const [appNotice, setAppNotice] = useState(
@@ -197,6 +205,7 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [savingProperty, setSavingProperty] = useState(false);
   const [savingRequirements, setSavingRequirements] = useState(false);
+  const [savingVerificationConfig, setSavingVerificationConfig] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
@@ -207,6 +216,11 @@ export default function App() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (!user) {
+        setCurrentProfile(null);
+        setNotif([true, true, false, true]);
+        return;
+      }
+      if (user.isAnonymous) {
         setCurrentProfile(null);
         setNotif([true, true, false, true]);
         return;
@@ -267,10 +281,11 @@ export default function App() {
       return;
     }
     try {
-      const [propsSnap, settingsSnap, reqSnap] = await Promise.all([
+      const [propsSnap, settingsSnap, reqSnap, verSnap] = await Promise.all([
         getDocs(collection(services.db, "properties")),
         getDoc(doc(services.db, "settings", "general")),
-        getDoc(doc(services.db, "settings", "requirements"))
+        getDoc(doc(services.db, "settings", "requirements")),
+        getDoc(doc(services.db, "settings", "verification"))
       ]);
 
       const props = propsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as PropertyRecord[];
@@ -286,6 +301,17 @@ export default function App() {
 
       const reqItems = (reqSnap.exists() ? (reqSnap.data() as any).items : null) as any;
       setRequirements(Array.isArray(reqItems) ? reqItems : DEFAULT_REQUIREMENTS);
+
+      const verData = verSnap.exists() ? (verSnap.data() as any) : null;
+      const verOptions = verData && Array.isArray(verData.options) ? verData.options : null;
+      setVerificationConfig({
+        options: Array.isArray(verOptions) ? verOptions : DEFAULT_VERIFICATION_CONFIG.options,
+        preApprovedMessage:
+          (verData && typeof verData.preApprovedMessage === "string"
+            ? verData.preApprovedMessage
+            : DEFAULT_VERIFICATION_CONFIG.preApprovedMessage) || DEFAULT_VERIFICATION_CONFIG.preApprovedMessage
+      });
+
       setModeLabel("Firebase");
       setAppNotice("");
     } catch (e: any) {
@@ -622,6 +648,19 @@ export default function App() {
       setAppError(e?.message || String(e));
     } finally {
       setSavingRequirements(false);
+    }
+  }
+
+  async function saveVerificationConfig() {
+    setSavingVerificationConfig(true);
+    try {
+      if (services.ready && services.db) {
+        await setDoc(doc(services.db, "settings", "verification"), verificationConfig, { merge: true });
+      }
+    } catch (e: any) {
+      setAppError(e?.message || String(e));
+    } finally {
+      setSavingVerificationConfig(false);
     }
   }
 
@@ -1139,11 +1178,11 @@ export default function App() {
       { label: "Departamentos", onClick: () => setSearchType("Departamento") },
       { label: "Casas", onClick: () => setSearchType("Casa") },
       { label: "Zonas", onClick: () => setSearchLocation("Caseros") },
-      { label: "Consultar requisitos", onClick: () => setActionKind("verification") }
+      { label: "Consultar requisitos", onClick: () => setVerificationOpen(true) }
     ];
   }, []);
 
-  const authPrimaryLabel = currentUser ? "Dashboard" : "Iniciar sesión";
+  const authPrimaryLabel = currentUser && !currentUser.isAnonymous ? "Dashboard" : "Iniciar sesión";
 
   return (
     <div style={{ minHeight: "100vh" }}>
@@ -1169,13 +1208,22 @@ export default function App() {
           onGoDashboard={() => requireAdmin(() => setScreen("dashboard"))}
           authPrimaryLabel={authPrimaryLabel}
           onAuthPrimaryAction={() => {
-            if (currentUser) {
+            if (currentUser && !currentUser.isAnonymous) {
               requireAdmin(() => setScreen("dashboard"));
               return;
             }
             setLoginOpen(true);
           }}
-          onOpenVerification={() => setActionKind("verification")}
+          onOpenVerification={async () => {
+            if (services.ready && services.auth && !currentUser) {
+              try {
+                await signInAnonymously(services.auth);
+              } catch (e: any) {
+                setAppError(e?.message || String(e));
+              }
+            }
+            setVerificationOpen(true);
+          }}
           settings={settings}
           onOpenWhatsapp={openWhatsapp}
           chatOpen={chatOpen}
@@ -1275,6 +1323,16 @@ export default function App() {
           requisitos={requirementRows as any}
           saveRequirementsLabel={savingRequirements ? "Guardando..." : "Guardar cambios"}
           onSaveRequirements={() => requireAdmin(() => void saveRequirements())}
+          verificationConfig={verificationConfig}
+          onVerificationConfig={(patch) =>
+            setVerificationConfig((prev) => ({
+              ...prev,
+              ...patch,
+              options: Array.isArray((patch as any).options) ? (patch as any).options : prev.options
+            }))
+          }
+          saveVerificationLabel={savingVerificationConfig ? "Guardando..." : "Guardar verificación"}
+          onSaveVerification={() => requireAdmin(() => void saveVerificationConfig())}
           consultasInbox={consultasInbox as any}
           userSearch={userSearch}
           onUserSearch={setUserSearch}
@@ -1307,6 +1365,116 @@ export default function App() {
         onClose={() => setActionKind("")}
         onSubmit={submitAction}
         submitLabel={actionLoading ? "Enviando..." : "Enviar"}
+      />
+
+      <VerificationModal
+        open={verificationOpen}
+        config={verificationConfig}
+        onClose={() => setVerificationOpen(false)}
+        onSubmit={async ({ optionKey, name, email, phone, guarantorSeniorityYears, deedInLocation, files, setResult }) => {
+          const opt =
+            verificationConfig.options.find((o) => o.key === optionKey) ||
+            verificationConfig.options[0] ||
+            DEFAULT_VERIFICATION_CONFIG.options[0];
+
+          const missing: string[] = [];
+          if (opt.tenantPayslipRequired && !files.tenantPayslip) {
+            missing.push("Recibo inquilino");
+          }
+          if ((files.guarantorPayslips || []).length < (opt.guarantorPayslipsMin || 0)) {
+            missing.push(`Recibos garantes (${opt.guarantorPayslipsMin})`);
+          }
+          if ((guarantorSeniorityYears || 0) < (opt.guarantorSeniorityYearsMin || 0)) {
+            missing.push(`Antigüedad garantes (≥${opt.guarantorSeniorityYearsMin} años)`);
+          }
+          if (opt.deedRequired) {
+            if (!deedInLocation) {
+              missing.push(`Escritura en ${opt.deedLocationLabel || "Venado Tuerto"}`);
+            }
+            if (!files.deed) {
+              missing.push("Archivo escritura");
+            }
+          }
+
+          const preApproved = missing.length === 0;
+          setResult({
+            status: preApproved ? "PreAprobado" : "Pendiente",
+            message: preApproved
+              ? verificationConfig.preApprovedMessage || DEFAULT_VERIFICATION_CONFIG.preApprovedMessage
+              : "Pendiente. Completá los requisitos y volvé a intentar.",
+            missing
+          });
+
+          if (!services.ready || !services.db || !services.storage) {
+            return;
+          }
+
+          if (services.auth && !currentUser) {
+            try {
+              await signInAnonymously(services.auth);
+            } catch {
+            }
+          }
+
+          const db = services.db;
+          const storage = services.storage;
+
+          const verificationRef = doc(collection(db, "verification_requests"));
+          await setDoc(
+            verificationRef,
+            {
+              name,
+              email,
+              phone,
+              optionKey: opt.key,
+              optionTitle: opt.title,
+              guarantorSeniorityYears,
+              deedInLocation,
+              status: preApproved ? "PreAprobado" : "Pendiente",
+              missing,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            },
+            { merge: true }
+          );
+
+          const uploaded: any[] = [];
+
+          async function uploadOne(file: File, tag: string) {
+            const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+            const path = `verifications/${verificationRef.id}/${Date.now()}-${tag}-${safeName}`;
+            const r = storageRef(storage, path);
+            await uploadBytes(r, file);
+            const url = await getDownloadURL(r);
+            uploaded.push({
+              tag,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              path,
+              url
+            });
+          }
+
+          if (files.tenantPayslip) {
+            await uploadOne(files.tenantPayslip, "tenant_payslip");
+          }
+          for (let i = 0; i < (files.guarantorPayslips || []).length; i += 1) {
+            await uploadOne(files.guarantorPayslips[i], `guarantor_payslip_${i + 1}`);
+          }
+          if (files.deed) {
+            await uploadOne(files.deed, "deed");
+          }
+
+          await setDoc(
+            verificationRef,
+            {
+              files: uploaded,
+              updatedAt: serverTimestamp()
+            },
+            { merge: true }
+          );
+        }}
       />
 
       <Toast message={appError} kind="error" />

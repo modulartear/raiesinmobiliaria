@@ -2,6 +2,7 @@ import { css } from "../lib/css";
 import { logoRaiesUrl } from "../lib/assets";
 import MsIcon from "../components/MsIcon";
 import type { CSSProperties } from "react";
+import type { VerificationConfig } from "../data/models";
 
 type SidebarItem = { label: string; icon: string; style: CSSProperties; onClick: () => void };
 type StatCard = { label: string; val: string; delta: string; sub: string; icon: string };
@@ -127,6 +128,10 @@ export default function DashboardScreen({
   requisitos,
   saveRequirementsLabel,
   onSaveRequirements,
+  verificationConfig,
+  onVerificationConfig,
+  saveVerificationLabel,
+  onSaveVerification,
   consultasInbox,
   userSearch,
   onUserSearch,
@@ -195,6 +200,10 @@ export default function DashboardScreen({
   requisitos: RequirementRow[];
   saveRequirementsLabel: string;
   onSaveRequirements: () => void;
+  verificationConfig: VerificationConfig;
+  onVerificationConfig: (patch: Partial<VerificationConfig>) => void;
+  saveVerificationLabel: string;
+  onSaveVerification: () => void;
   consultasInbox: ConsultaInboxRow[];
   userSearch: string;
   onUserSearch: (v: string) => void;
@@ -1108,6 +1117,152 @@ export default function DashboardScreen({
                     <MsIcon name="expand_more" style={{ fontSize: 20, color: "#9aa0a3" }} />
                   </div>
                 </div>
+
+                <div
+                  style={css(
+                    "background:#fff;border-radius:16px;padding:24px 26px;border:1px solid rgba(18,58,47,.07);box-shadow:0 8px 26px -20px rgba(18,58,47,.3)"
+                  )}
+                >
+                  <h3
+                    style={css(
+                      "margin:0 0 6px;font-family:'Schibsted Grotesk';font-weight:700;font-size:16px;color:#123A2F"
+                    )}
+                  >
+                    Verificación online
+                  </h3>
+                  <p style={css("margin:0 0 16px;font-size:13px;color:#8a928e")}>
+                    Configurá los criterios para que el cliente quede PreAprobado desde la landing.
+                  </p>
+
+                  <div style={css("display:flex;flex-direction:column;gap:14px")}>
+                    {verificationConfig.options.map((opt, idx) => (
+                      <div
+                        key={opt.key}
+                        style={css(
+                          "border:1px solid rgba(18,58,47,.09);border-radius:14px;padding:14px 14px;background:#F7F8F8"
+                        )}
+                      >
+                        <div style={css("display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px")}>
+                          <div style={css("font:800 13px/1 'Plus Jakarta Sans';color:#123A2F")}>{opt.title}</div>
+                          <span style={css("font:700 11px/1 'Plus Jakarta Sans';letter-spacing:.12em;color:#C9A34D")}>
+                            {opt.key.toUpperCase()}
+                          </span>
+                        </div>
+
+                        <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
+                          <div>
+                            <label style={css("display:block;font:600 12px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:7px")}>
+                              Recibos garantes (mín.)
+                            </label>
+                            <input
+                              value={String(opt.guarantorPayslipsMin ?? "")}
+                              onChange={(e) => {
+                                const v = Number(String(e.target.value).replace(/[^\d]/g, "")) || 0;
+                                const next = verificationConfig.options.slice();
+                                next[idx] = { ...next[idx], guarantorPayslipsMin: v };
+                                onVerificationConfig({ options: next });
+                              }}
+                              style={css(
+                                "width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#fff;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none"
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label style={css("display:block;font:600 12px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:7px")}>
+                              Antigüedad (años)
+                            </label>
+                            <input
+                              value={String(opt.guarantorSeniorityYearsMin ?? "")}
+                              onChange={(e) => {
+                                const v = Number(String(e.target.value).replace(/[^\d]/g, "")) || 0;
+                                const next = verificationConfig.options.slice();
+                                next[idx] = { ...next[idx], guarantorSeniorityYearsMin: v };
+                                onVerificationConfig({ options: next });
+                              }}
+                              style={css(
+                                "width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#fff;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none"
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={css("display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px")}>
+                          <div>
+                            <div style={css("font:700 12.5px/1 'Plus Jakarta Sans';color:#1f2a26")}>
+                              Requiere escritura
+                            </div>
+                            <div style={css("font-size:11.5px;color:#9aa0a3;margin-top:4px")}>
+                              Para Opción 2: escritura de inmueble en la ciudad indicada.
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const next = verificationConfig.options.slice();
+                              next[idx] = { ...next[idx], deedRequired: !next[idx].deedRequired };
+                              onVerificationConfig({ options: next });
+                            }}
+                            style={css(
+                              "width:44px;height:26px;border-radius:999px;border:none;cursor:pointer;position:relative;background:" +
+                                (opt.deedRequired ? "#205843" : "#cdd2d3")
+                            )}
+                          >
+                            <span
+                              style={css(
+                                "position:absolute;top:3px;left:" +
+                                  (opt.deedRequired ? "21px" : "3px") +
+                                  ";width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)"
+                              )}
+                            />
+                          </button>
+                        </div>
+
+                        {opt.deedRequired && (
+                          <div style={css("margin-top:12px")}>
+                            <label style={css("display:block;font:600 12px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:7px")}>
+                              Ciudad de la escritura
+                            </label>
+                            <input
+                              value={String(opt.deedLocationLabel ?? "")}
+                              onChange={(e) => {
+                                const next = verificationConfig.options.slice();
+                                next[idx] = { ...next[idx], deedLocationLabel: e.target.value };
+                                onVerificationConfig({ options: next });
+                              }}
+                              placeholder="Venado Tuerto"
+                              style={css(
+                                "width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#fff;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none"
+                              )}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    <div>
+                      <label style={css("display:block;font:600 12px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:7px")}>
+                        Mensaje PreAprobado
+                      </label>
+                      <textarea
+                        value={verificationConfig.preApprovedMessage || ""}
+                        onChange={(e) => onVerificationConfig({ preApprovedMessage: e.target.value })}
+                        style={css(
+                          "width:100%;min-height:92px;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#fff;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none;resize:vertical"
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onSaveVerification}
+                  style={css(
+                    "width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:12px;border:none;background:linear-gradient(180deg,#D6B25C,#C9A34D);color:#1a1408;font:800 14px/1 'Plus Jakarta Sans';cursor:pointer;box-shadow:0 12px 28px -10px rgba(201,163,77,.7)"
+                  )}
+                >
+                  <MsIcon name="save" style={{ fontSize: 18 }} />
+                  {saveVerificationLabel}
+                </button>
+
                 <button
                   onClick={onSaveRequirements}
                   style={css(

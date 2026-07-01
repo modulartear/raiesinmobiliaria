@@ -6,7 +6,8 @@ import type {
   RentalRequestRecord,
   SettingsRecord,
   TenantRecord,
-  UserRecord
+  UserRecord,
+  VerificationConfig
 } from "./models";
 
 export const DEFAULT_SETTINGS: SettingsRecord = {
@@ -65,6 +66,31 @@ export const DEFAULT_DOCS: string[] = [
   "Garantía propietaria",
   "Constancia de CUIL"
 ];
+
+export const DEFAULT_VERIFICATION_CONFIG: VerificationConfig = {
+  options: [
+    {
+      key: "op1",
+      title: "Opción 1",
+      tenantPayslipRequired: true,
+      guarantorPayslipsMin: 4,
+      guarantorSeniorityYearsMin: 3,
+      deedRequired: false,
+      deedLocationLabel: "Venado Tuerto"
+    },
+    {
+      key: "op2",
+      title: "Opción 2",
+      tenantPayslipRequired: true,
+      guarantorPayslipsMin: 2,
+      guarantorSeniorityYearsMin: 3,
+      deedRequired: true,
+      deedLocationLabel: "Venado Tuerto"
+    }
+  ],
+  preApprovedMessage:
+    "PreAprobado. Te invitamos a presentar la documentación en la Inmobiliaria para continuar."
+};
 
 export const DEFAULT_FEATURES: { icon: string; label: string; val: string }[] = [
   { icon: "bed", label: "Ambientes", val: "3" },
@@ -274,4 +300,3 @@ export const FALLBACK_USERS: UserRecord[] = [
     notif: [true, true, true, false]
   }
 ];
-
