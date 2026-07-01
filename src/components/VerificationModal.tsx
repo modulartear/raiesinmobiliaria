@@ -65,6 +65,23 @@ export default function VerificationModal({
 
   const deedLabel = selectedOption.deedLocationLabel || "Venado Tuerto";
 
+  function optionDetailLines(opt: (typeof selectedOption) | any): string[] {
+    const lines: string[] = [];
+    if (opt.tenantPayslipRequired) {
+      lines.push("Recibo de sueldo del inquilino");
+    }
+    if (opt.guarantorPayslipsMin) {
+      lines.push(`Garantías: mínimo ${opt.guarantorPayslipsMin} recibos de sueldo de garantes`);
+    }
+    if (opt.guarantorSeniorityYearsMin) {
+      lines.push(`Antigüedad garantes: más de ${opt.guarantorSeniorityYearsMin} años`);
+    }
+    if (opt.deedRequired) {
+      lines.push(`Escritura de inmueble en ${opt.deedLocationLabel || "Venado Tuerto"}`);
+    }
+    return lines;
+  }
+
   function resetAll() {
     setStep(1);
     setOptionKey("op1");
@@ -226,6 +243,101 @@ export default function VerificationModal({
                   </button>
                 );
               })}
+            </div>
+
+            <div
+              style={css(
+                "background:#fff;border:1px solid rgba(18,58,47,.08);border-radius:16px;padding:16px 16px;margin-bottom:16px"
+              )}
+            >
+              <div
+                style={css(
+                  "display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#123A2F"
+                )}
+              >
+                <span
+                  style={css(
+                    "width:34px;height:34px;border-radius:11px;background:rgba(201,163,77,.16);display:flex;align-items:center;justify-content:center;color:#b08a2f"
+                  )}
+                >
+                  <MsIcon name="list_alt" style={{ fontSize: 19 }} />
+                </span>
+                <div>
+                  <div
+                    style={css(
+                      "font:900 13.5px/1 'Plus Jakarta Sans';letter-spacing:.02em"
+                    )}
+                  >
+                    Detalle de requisitos
+                  </div>
+                  <div style={css("font-size:12.5px;color:#8a928e;margin-top:4px")}>
+                    Elegí una opción y verificá qué documentación te pedimos.
+                  </div>
+                </div>
+              </div>
+
+              <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
+                {config.options.slice(0, 2).map((opt) => {
+                  const active = opt.key === optionKey;
+                  const lines = optionDetailLines(opt);
+                  return (
+                    <div
+                      key={opt.key}
+                      style={css(
+                        "border-radius:14px;padding:14px 14px;border:1.5px solid " +
+                          (active ? "rgba(32,88,67,.38)" : "rgba(18,58,47,.10)") +
+                          ";background:" +
+                          (active ? "rgba(32,88,67,.06)" : "#F7F8F8")
+                      )}
+                    >
+                      <div
+                        style={css(
+                          "display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px"
+                        )}
+                      >
+                        <div
+                          style={css(
+                            "font:900 13.5px/1 'Plus Jakarta Sans';color:#123A2F"
+                          )}
+                        >
+                          {opt.title}
+                        </div>
+                        {active && (
+                          <span
+                            style={css(
+                              "display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:rgba(32,120,77,.12);color:#1c7a4d;font:800 11px/1 'Plus Jakarta Sans'"
+                            )}
+                          >
+                            <span
+                              style={css(
+                                "width:7px;height:7px;border-radius:50%;background:#1c7a4d"
+                              )}
+                            />
+                            Seleccionada
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={css("display:flex;flex-direction:column;gap:8px")}>
+                        {lines.map((txt) => (
+                          <div
+                            key={txt}
+                            style={css(
+                              "display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.45;color:#3a443f"
+                            )}
+                          >
+                            <MsIcon
+                              name="task_alt"
+                              style={{ fontSize: 18, color: "#C9A34D", marginTop: 1 }}
+                            />
+                            <span>{txt}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:14px")}>
@@ -531,4 +643,3 @@ export default function VerificationModal({
     </div>
   );
 }
-
