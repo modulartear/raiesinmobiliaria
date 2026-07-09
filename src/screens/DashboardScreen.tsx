@@ -1692,7 +1692,9 @@ export default function DashboardScreen({
                           <span>{requestReview.phone || "Sin teléfono"}</span>
                           {requestReview.phone ? (
                             <a
-                              href={`https://wa.me/${String(requestReview.phone).replace(/\D/g, "")}`}
+                              href={`https://wa.me/${String(requestReview.phone).replace(/\D/g, "")}?text=${encodeURIComponent(
+                                `Hola ${requestReview.name} controlamos toda la documentacion y estas aprobado. Te invitamos a acercarte a nuestra oficina en calle Caseros 117 para definir el contrato. Saludos Cordiales Servicios Inmobiliarios Raies.`
+                              )}`}
                               target="_blank"
                               rel="noreferrer"
                               style={css(
