@@ -501,7 +501,7 @@ export default function App() {
       status: p.status || "Disponible",
       featured: Boolean(p.featured),
       adminFee: formatCurrency(400000),
-      deposit: formatCurrency((p.price || 0) * 2.5),
+      deposit: formatCurrency((p.price || 0) * 1.5),
       bg: p.bg,
       photoLabel: p.photoLabel,
       onEnter: () => setHover(idx),
