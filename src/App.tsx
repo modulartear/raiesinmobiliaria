@@ -1342,6 +1342,10 @@ export default function App() {
 
   const reviewingRequestView = useMemo(() => {
     if (!reviewingRequest) return null;
+    const prop = reviewingRequest.propertyId
+      ? properties.find((p) => p.id === reviewingRequest.propertyId)
+      : null;
+    const rent = prop?.price ?? 0;
     return {
       id: reviewingRequest.id,
       name: reviewingRequest.name,
@@ -1351,6 +1355,8 @@ export default function App() {
       ingreso: reviewingRequest.ingreso,
       status: reviewingRequest.allApproved ? "Aprobado" : reviewingRequest.status,
       allApproved: reviewingRequest.allApproved,
+      adminFee: formatCurrency(400000),
+      deposit: formatCurrency(rent * 1.5),
       docs: reviewingRequest.docs.map((d) => ({
         id: d.id,
         inquilino: d.inquilino,
@@ -1363,7 +1369,7 @@ export default function App() {
         approved: d.approved
       }))
     };
-  }, [reviewingRequest]);
+  }, [reviewingRequest, properties]);
 
   const requirementRows = useMemo(() => {
     return requirements.map((r, idx) => {

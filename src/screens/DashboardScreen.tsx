@@ -227,6 +227,8 @@ export default function DashboardScreen({
     ingreso: string;
     status: string;
     allApproved: boolean;
+    adminFee: string;
+    deposit: string;
     docs: DocumentRow[];
   };
   onOpenRequestReview: (requestId: string) => void;
@@ -1784,6 +1786,22 @@ export default function DashboardScreen({
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div
+                style={css(
+                  "margin-top:14px;background:#F7F8F8;border:1px solid rgba(18,58,47,.08);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px"
+                )}
+              >
+                <div style={css("font:800 13px/1 'Plus Jakarta Sans';color:#123A2F")}>
+                  Servicios
+                </div>
+                <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                  Gastos administrativos: <strong style={{ color: "#123A2F" }}>{requestReview.adminFee}</strong>
+                </div>
+                <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                  Depósito en garantía: <strong style={{ color: "#123A2F" }}>{requestReview.deposit}</strong>
+                </div>
               </div>
             </div>
           </div>
