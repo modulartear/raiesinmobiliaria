@@ -427,68 +427,7 @@ export default function App() {
         };
       });
 
-      const verDocsWithDate: { date: Date; row: DocumentRecord }[] = [];
-      try {
-        const verReqSnap = await getDocs(collection(db, "verification_requests"));
-        for (const d of verReqSnap.docs) {
-          const data = d.data() as any;
-          const who = data.name || data.tenantName || "Sin nombre";
-          const status = data.status || "Pendiente";
-          const date = asDate(data.updatedAt || data.createdAt);
-          const files = Array.isArray(data.files) ? data.files : [];
-          if (!files.length) {
-            verDocsWithDate.push({
-              date,
-              row: {
-                id: `${d.id}__verification`,
-                inquilino: who,
-                doc: String(data.optionTitle || "Verificación"),
-                fecha: formatDate(date),
-                estado: status,
-                icon: "description"
-              }
-            });
-          }
-          for (const f of files) {
-            const tag = String((f && f.tag) || "");
-            const fileName = String((f && f.name) || "");
-            const url = typeof (f && f.url) === "string" ? f.url : undefined;
-
-            let label = "Documento";
-            let icon = "description";
-            if (tag === "tenant_payslip") {
-              label = "Recibo inquilino";
-            } else if (tag.startsWith("guarantor_payslip_")) {
-              const n = tag.replace("guarantor_payslip_", "");
-              label = `Recibo garante ${n}`;
-            } else if (tag === "deed") {
-              label = "Escritura";
-              icon = "gavel";
-            }
-
-            verDocsWithDate.push({
-              date,
-              row: {
-                id: `${d.id}_${tag}_${fileName || "file"}`,
-                inquilino: who,
-                doc: fileName ? `${label} · ${fileName}` : label,
-                fecha: formatDate(date),
-                estado: status,
-                icon,
-                url
-              }
-            });
-          }
-        }
-      } catch (e: any) {
-        setAppError(
-          "No se pudo leer verification_requests. Revisá reglas de Firestore para permitir lectura a administradores."
-        );
-      }
-
-      verDocsWithDate.sort((a, b) => b.date.getTime() - a.date.getTime());
-      const mergedDocs = [...verDocsWithDate.map((x) => x.row), ...baseDocs];
-      setDocuments(mergedDocs);
+      setDocuments(baseDocs);
     } catch (e: any) {
       setAppError(`No se pudo preparar Documentación. ${e?.message || String(e)}`);
     }
