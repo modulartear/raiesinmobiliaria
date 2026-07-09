@@ -419,11 +419,23 @@ export default function App() {
           const status = data.status || "Pendiente";
           const date = asDate(data.updatedAt || data.createdAt);
           const files = Array.isArray(data.files) ? data.files : [];
+          if (!files.length) {
+            verDocsWithDate.push({
+              date,
+              row: {
+                id: `${d.id}__verification`,
+                inquilino: who,
+                doc: String(data.optionTitle || "Verificación"),
+                fecha: formatDate(date),
+                estado: status,
+                icon: "description"
+              }
+            });
+          }
           for (const f of files) {
             const tag = String((f && f.tag) || "");
             const fileName = String((f && f.name) || "");
             const url = typeof (f && f.url) === "string" ? f.url : undefined;
-            if (!url) continue;
 
             let label = "Documento";
             let icon = "description";
