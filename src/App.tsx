@@ -262,6 +262,12 @@ export default function App() {
   }, [services.ready, services.auth, services.db]);
 
   useEffect(() => {
+    if (screen !== "dashboard") return;
+    if (!currentUser || currentUser.isAnonymous) return;
+    void loadPrivateData();
+  }, [screen, currentUser, services.ready, services.db]);
+
+  useEffect(() => {
     void loadPublicData();
   }, [services.ready]);
 
@@ -1014,7 +1020,8 @@ export default function App() {
       fecha: d.fecha,
       estado: d.estado,
       badge: badgeStyle(statusKind(d.estado)),
-      icon: d.icon
+      icon: d.icon,
+      url: d.url
     }));
   }, [documents]);
 
@@ -1526,6 +1533,10 @@ export default function App() {
             },
             { merge: true }
           );
+
+          if (currentUser && !currentUser.isAnonymous) {
+            await loadPrivateData();
+          }
         }}
       />
 
