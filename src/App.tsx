@@ -1809,7 +1809,7 @@ export default function App() {
           price={selectedProperty.priceLabel}
           adminFee={formatCurrency(400000)}
           deposit={formatCurrency((selectedProperty.price || 0) * 1.5)}
-          onOpenRequest={() => setActionKind("request")}
+          onOpenRequest={() => setVerificationOpen(true)}
           onOpenConsult={() => setActionKind("consult")}
           onOpenWhatsapp={openWhatsapp}
           lightboxOpen={lightbox >= 0}
