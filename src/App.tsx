@@ -329,15 +329,24 @@ export default function App() {
   async function loadPrivateData() {
     if (!services.ready || !services.db) return;
     const db = services.db;
-    try {
-      const [consSnap, reqSnap, tenSnap, docSnap, usrSnap] = await Promise.all([
-        getDocs(collection(db, "consultations")),
-        getDocs(collection(db, "rental_requests")),
-        getDocs(collection(db, "tenants")),
-        getDocs(collection(db, "documents")),
-        getDocs(collection(db, "users"))
-      ]);
+    async function safeGetDocs(path: string) {
+      try {
+        return await getDocs(collection(db, path));
+      } catch (e: any) {
+        setAppError(`No se pudo leer ${path}. ${e?.message || String(e)}`);
+        return null;
+      }
+    }
 
+    const [consSnap, reqSnap, tenSnap, docSnap, usrSnap] = await Promise.all([
+      safeGetDocs("consultations"),
+      safeGetDocs("rental_requests"),
+      safeGetDocs("tenants"),
+      safeGetDocs("documents"),
+      safeGetDocs("users")
+    ]);
+
+    if (consSnap) {
       setConsultations(
         consSnap.docs.map((d) => {
           const data = d.data() as any;
@@ -354,7 +363,9 @@ export default function App() {
           };
         })
       );
+    }
 
+    if (reqSnap) {
       setRequests(
         reqSnap.docs.map((d) => {
           const data = d.data() as any;
@@ -368,7 +379,9 @@ export default function App() {
           };
         })
       );
+    }
 
+    if (tenSnap) {
       setTenants(
         tenSnap.docs.map((d) => {
           const data = d.data() as any;
@@ -382,7 +395,9 @@ export default function App() {
           };
         })
       );
+    }
 
+    if (usrSnap) {
       setUsers(
         usrSnap.docs.map((d) => {
           const data = d.data() as any;
@@ -396,8 +411,10 @@ export default function App() {
           };
         })
       );
+    }
 
-      const baseDocs = docSnap.docs.map((d) => {
+    try {
+      const baseDocs = (docSnap?.docs || []).map((d) => {
         const data = d.data() as any;
         return {
           id: d.id,
@@ -473,7 +490,7 @@ export default function App() {
       const mergedDocs = [...verDocsWithDate.map((x) => x.row), ...baseDocs];
       setDocuments(mergedDocs);
     } catch (e: any) {
-      setAppError(e?.message || String(e));
+      setAppError(`No se pudo preparar Documentación. ${e?.message || String(e)}`);
     }
   }
 
