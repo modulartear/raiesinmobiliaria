@@ -341,11 +341,19 @@ export default function App() {
       setProperties(normalized);
       setSelectedPropertyId(normalized[0]?.id || selectedPropertyId);
 
-      setSettings(
-        settingsSnap.exists()
-          ? { ...DEFAULT_SETTINGS, ...(settingsSnap.data() as any) }
-          : DEFAULT_SETTINGS
-      );
+      if (settingsSnap.exists()) {
+        const merged = { ...DEFAULT_SETTINGS, ...(settingsSnap.data() as any) } as SettingsRecord;
+        const fallbackWhatsapp = String(merged.phone || "").trim();
+        const hasCustomWhatsapp =
+          Boolean(String(merged.whatsapp || "").trim()) &&
+          String(merged.whatsapp || "").trim() !== String(DEFAULT_SETTINGS.whatsapp || "").trim();
+        setSettings({
+          ...merged,
+          whatsapp: hasCustomWhatsapp ? merged.whatsapp : fallbackWhatsapp || merged.whatsapp
+        });
+      } else {
+        setSettings(DEFAULT_SETTINGS);
+      }
 
       const reqItems = (reqSnap.exists() ? (reqSnap.data() as any).items : null) as any;
       setRequirements(Array.isArray(reqItems) ? reqItems : DEFAULT_REQUIREMENTS);
@@ -729,7 +737,13 @@ export default function App() {
   }
 
   function openWhatsapp() {
-    const phone = String(settings.whatsapp || "").replace(/\D/g, "");
+    const rawWhatsapp = String(settings.whatsapp || "").trim();
+    const rawPhone = String(settings.phone || "").trim();
+    const chosen =
+      rawWhatsapp && rawWhatsapp !== String(DEFAULT_SETTINGS.whatsapp || "").trim()
+        ? rawWhatsapp
+        : rawPhone || rawWhatsapp;
+    const phone = String(chosen || "").replace(/\D/g, "");
     if (!phone) {
       setAppError("Configura el teléfono de WhatsApp en Configuración.");
       return;
@@ -873,7 +887,16 @@ export default function App() {
     setSavingSettings(true);
     try {
       if (services.ready && services.db) {
-        await setDoc(doc(services.db, "settings", "general"), settings, { merge: true });
+        const nextWhatsapp =
+          String(settings.whatsapp || "").trim() || String(settings.phone || "").trim();
+        await setDoc(
+          doc(services.db, "settings", "general"),
+          {
+            ...settings,
+            whatsapp: nextWhatsapp
+          },
+          { merge: true }
+        );
         if (currentUser) {
           await setDoc(doc(services.db, "users", currentUser.uid), { notif }, { merge: true });
         }
