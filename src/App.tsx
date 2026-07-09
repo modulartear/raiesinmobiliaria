@@ -322,11 +322,12 @@ export default function App() {
 
   async function loadPrivateData() {
     if (!services.ready || !services.db) return;
-    const [consSnap, reqSnap, tenSnap, docSnap, usrSnap] = await Promise.all([
+    const [consSnap, reqSnap, tenSnap, docSnap, verReqSnap, usrSnap] = await Promise.all([
       getDocs(collection(services.db, "consultations")),
       getDocs(collection(services.db, "rental_requests")),
       getDocs(collection(services.db, "tenants")),
       getDocs(collection(services.db, "documents")),
+      getDocs(collection(services.db, "verification_requests")),
       getDocs(collection(services.db, "users"))
     ]);
 
@@ -375,8 +376,7 @@ export default function App() {
       })
     );
 
-    setDocuments(
-      docSnap.docs.map((d) => {
+    const baseDocs = docSnap.docs.map((d) => {
         const data = d.data() as any;
         return {
           id: d.id,
@@ -384,10 +384,54 @@ export default function App() {
           doc: data.name || "Documento",
           fecha: formatDate(asDate(data.createdAt)),
           estado: data.status || "Pendiente",
-          icon: data.icon || "description"
+          icon: data.icon || "description",
+          url: typeof data.url === "string" ? data.url : undefined
         };
-      })
-    );
+      });
+
+    const verDocsWithDate: { date: Date; row: DocumentRecord }[] = [];
+    for (const d of verReqSnap.docs) {
+      const data = d.data() as any;
+      const who = data.name || data.tenantName || "Sin nombre";
+      const status = data.status || "Pendiente";
+      const date = asDate(data.updatedAt || data.createdAt);
+      const files = Array.isArray(data.files) ? data.files : [];
+      for (const f of files) {
+        const tag = String((f && f.tag) || "");
+        const fileName = String((f && f.name) || "");
+        const url = typeof (f && f.url) === "string" ? f.url : undefined;
+        if (!url) continue;
+
+        let label = "Documento";
+        let icon = "description";
+        if (tag === "tenant_payslip") {
+          label = "Recibo inquilino";
+        } else if (tag.startsWith("guarantor_payslip_")) {
+          const n = tag.replace("guarantor_payslip_", "");
+          label = `Recibo garante ${n}`;
+        } else if (tag === "deed") {
+          label = "Escritura";
+          icon = "gavel";
+        }
+
+        verDocsWithDate.push({
+          date,
+          row: {
+            id: `${d.id}_${tag}_${fileName || "file"}`,
+            inquilino: who,
+            doc: fileName ? `${label} · ${fileName}` : label,
+            fecha: formatDate(date),
+            estado: status,
+            icon,
+            url
+          }
+        });
+      }
+    }
+
+    verDocsWithDate.sort((a, b) => b.date.getTime() - a.date.getTime());
+    const mergedDocs = [...verDocsWithDate.map((x) => x.row), ...baseDocs];
+    setDocuments(mergedDocs);
 
     setUsers(
       usrSnap.docs.map((d) => {

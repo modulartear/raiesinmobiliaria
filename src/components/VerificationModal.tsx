@@ -112,8 +112,11 @@ export default function VerificationModal({
   }
 
   function pickGuarantorPayslips(files: FileList | null) {
-    const list = files ? Array.from(files).slice(0, 10) : [];
-    setGuarantorPayslips(list);
+    const incoming = files ? Array.from(files) : [];
+    if (!incoming.length) return;
+    setGuarantorPayslips((prev) => {
+      return [...prev, ...incoming].slice(0, 10);
+    });
   }
 
   function pickDeed(files: FileList | null) {
@@ -517,7 +520,10 @@ export default function VerificationModal({
                     type="file"
                     accept=".pdf,image/*"
                     style={{ display: "none" }}
-                    onChange={(e) => pickTenantPayslip(e.target.files)}
+                    onChange={(e) => {
+                      pickTenantPayslip(e.currentTarget.files);
+                      e.currentTarget.value = "";
+                    }}
                   />
                 </div>
                 <div style={css("margin-top:12px;font-size:12.5px;color:#5a6460")}>
@@ -549,13 +555,38 @@ export default function VerificationModal({
                     accept=".pdf,image/*"
                     multiple
                     style={{ display: "none" }}
-                    onChange={(e) => pickGuarantorPayslips(e.target.files)}
+                    onChange={(e) => {
+                      pickGuarantorPayslips(e.currentTarget.files);
+                      e.currentTarget.value = "";
+                    }}
                   />
                 </div>
-                <div style={css("margin-top:12px;font-size:12.5px;color:#5a6460;line-height:1.45")}>
-                  {guarantorPayslips.length
-                    ? guarantorPayslips.map((f) => f.name).join(", ")
-                    : "Sin archivos"}
+                <div style={css("margin-top:12px")}>
+                  {guarantorPayslips.length ? (
+                    <>
+                      <div style={css("font-size:12px;color:#8a928e;margin-bottom:8px")}>
+                        Seleccionados: {guarantorPayslips.length}
+                        {selectedOption.guarantorPayslipsMin ? ` / ${selectedOption.guarantorPayslipsMin}` : ""}
+                      </div>
+                      <div style={css("display:flex;flex-direction:column;gap:8px")}>
+                        {guarantorPayslips.map((f, idx) => (
+                          <div
+                            key={`${f.name}__${f.size}__${f.lastModified}__${idx}`}
+                            style={css(
+                              "display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:14px;background:#F7F8F8;border:1px solid rgba(18,58,47,.08)"
+                            )}
+                          >
+                            <MsIcon name="description" style={{ fontSize: 18, color: "#205843", marginTop: 1 }} />
+                            <div style={css("font-size:12.5px;color:#3a443f;line-height:1.35;word-break:break-word")}>
+                              {f.name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>Sin archivos</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -584,7 +615,10 @@ export default function VerificationModal({
                     type="file"
                     accept=".pdf,image/*"
                     style={{ display: "none" }}
-                    onChange={(e) => pickDeed(e.target.files)}
+                    onChange={(e) => {
+                      pickDeed(e.currentTarget.files);
+                      e.currentTarget.value = "";
+                    }}
                   />
                 </div>
                 <div style={css("margin-top:12px;font-size:12.5px;color:#5a6460")}>

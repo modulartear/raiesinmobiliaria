@@ -47,6 +47,7 @@ type DocumentRow = {
   estado: string;
   badge: string;
   icon: string;
+  url?: string;
 };
 type RequirementRow = {
   label: string;
@@ -1046,13 +1047,26 @@ export default function DashboardScreen({
                     <span style={css(d.badge)}>{d.estado}</span>
                   </span>
                   <div style={css("display:flex;gap:6px;justify-content:flex-end")}>
-                    <span
-                      style={css(
-                        "width:32px;height:32px;border-radius:8px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;cursor:pointer"
-                      )}
-                    >
-                      <MsIcon name="visibility" style={{ fontSize: 18 }} />
-                    </span>
+                    {d.url ? (
+                      <a
+                        href={d.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={css(
+                          "width:32px;height:32px;border-radius:8px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;text-decoration:none"
+                        )}
+                      >
+                        <MsIcon name="visibility" style={{ fontSize: 18 }} />
+                      </a>
+                    ) : (
+                      <span
+                        style={css(
+                          "width:32px;height:32px;border-radius:8px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;cursor:pointer"
+                        )}
+                      >
+                        <MsIcon name="visibility" style={{ fontSize: 18 }} />
+                      </span>
+                    )}
                     <span
                       style={css(
                         "width:32px;height:32px;border-radius:8px;background:rgba(32,120,77,.1);display:flex;align-items:center;justify-content:center;color:#1c7a4d;cursor:pointer"

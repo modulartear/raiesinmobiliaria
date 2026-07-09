@@ -61,6 +61,7 @@ export type DocumentRecord = {
   fecha: string;
   estado: string;
   icon: string;
+  url?: string;
 };
 
 export type UserRecord = {
