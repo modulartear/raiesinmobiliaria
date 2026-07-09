@@ -328,61 +328,76 @@ export default function App() {
 
   async function loadPrivateData() {
     if (!services.ready || !services.db) return;
-    const [consSnap, reqSnap, tenSnap, docSnap, verReqSnap, usrSnap] = await Promise.all([
-      getDocs(collection(services.db, "consultations")),
-      getDocs(collection(services.db, "rental_requests")),
-      getDocs(collection(services.db, "tenants")),
-      getDocs(collection(services.db, "documents")),
-      getDocs(collection(services.db, "verification_requests")),
-      getDocs(collection(services.db, "users"))
-    ]);
+    const db = services.db;
+    try {
+      const [consSnap, reqSnap, tenSnap, docSnap, usrSnap] = await Promise.all([
+        getDocs(collection(db, "consultations")),
+        getDocs(collection(db, "rental_requests")),
+        getDocs(collection(db, "tenants")),
+        getDocs(collection(db, "documents")),
+        getDocs(collection(db, "users"))
+      ]);
 
-    setConsultations(
-      consSnap.docs.map((d) => {
-        const data = d.data() as any;
-        return {
-          id: d.id,
-          name: data.name || "Sin nombre",
-          email: data.email || "",
-          phone: data.phone || "",
-          msg: data.message || data.msg || "",
-          canal: data.channel || data.canal || "Web",
-          estado: data.status || data.estado || "Nueva",
-          propertyTitle: data.propertyTitle || "Consulta general",
-          createdAt: asDate(data.createdAt)
-        };
-      })
-    );
+      setConsultations(
+        consSnap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            name: data.name || "Sin nombre",
+            email: data.email || "",
+            phone: data.phone || "",
+            msg: data.message || data.msg || "",
+            canal: data.channel || data.canal || "Web",
+            estado: data.status || data.estado || "Nueva",
+            propertyTitle: data.propertyTitle || "Consulta general",
+            createdAt: asDate(data.createdAt)
+          };
+        })
+      );
 
-    setRequests(
-      reqSnap.docs.map((d) => {
-        const data = d.data() as any;
-        return {
-          id: d.id,
-          name: data.name || "Sin nombre",
-          propertyTitle: data.propertyTitle || "Propiedad",
-          fecha: formatDate(asDate(data.createdAt)),
-          ingreso: formatCurrency(Number(data.monthlyIncome || 0)),
-          status: data.status || "En revisión"
-        };
-      })
-    );
+      setRequests(
+        reqSnap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            name: data.name || "Sin nombre",
+            propertyTitle: data.propertyTitle || "Propiedad",
+            fecha: formatDate(asDate(data.createdAt)),
+            ingreso: formatCurrency(Number(data.monthlyIncome || 0)),
+            status: data.status || "En revisión"
+          };
+        })
+      );
 
-    setTenants(
-      tenSnap.docs.map((d) => {
-        const data = d.data() as any;
-        return {
-          id: d.id,
-          name: data.name || "Sin nombre",
-          dni: data.dni || "Sin DNI",
-          prop: data.propertyTitle || "Sin propiedad",
-          desde: data.since || "—",
-          estado: data.status || "Activo"
-        };
-      })
-    );
+      setTenants(
+        tenSnap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            name: data.name || "Sin nombre",
+            dni: data.dni || "Sin DNI",
+            prop: data.propertyTitle || "Sin propiedad",
+            desde: data.since || "—",
+            estado: data.status || "Activo"
+          };
+        })
+      );
 
-    const baseDocs = docSnap.docs.map((d) => {
+      setUsers(
+        usrSnap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            name: data.name || "Usuario",
+            email: data.email || "",
+            rol: data.rol || "Agente",
+            estado: data.estado || "Activo",
+            notif: Array.isArray(data.notif) ? data.notif : [true, true, false, true]
+          };
+        })
+      );
+
+      const baseDocs = docSnap.docs.map((d) => {
         const data = d.data() as any;
         return {
           id: d.id,
@@ -395,63 +410,59 @@ export default function App() {
         };
       });
 
-    const verDocsWithDate: { date: Date; row: DocumentRecord }[] = [];
-    for (const d of verReqSnap.docs) {
-      const data = d.data() as any;
-      const who = data.name || data.tenantName || "Sin nombre";
-      const status = data.status || "Pendiente";
-      const date = asDate(data.updatedAt || data.createdAt);
-      const files = Array.isArray(data.files) ? data.files : [];
-      for (const f of files) {
-        const tag = String((f && f.tag) || "");
-        const fileName = String((f && f.name) || "");
-        const url = typeof (f && f.url) === "string" ? f.url : undefined;
-        if (!url) continue;
+      const verDocsWithDate: { date: Date; row: DocumentRecord }[] = [];
+      try {
+        const verReqSnap = await getDocs(collection(db, "verification_requests"));
+        for (const d of verReqSnap.docs) {
+          const data = d.data() as any;
+          const who = data.name || data.tenantName || "Sin nombre";
+          const status = data.status || "Pendiente";
+          const date = asDate(data.updatedAt || data.createdAt);
+          const files = Array.isArray(data.files) ? data.files : [];
+          for (const f of files) {
+            const tag = String((f && f.tag) || "");
+            const fileName = String((f && f.name) || "");
+            const url = typeof (f && f.url) === "string" ? f.url : undefined;
+            if (!url) continue;
 
-        let label = "Documento";
-        let icon = "description";
-        if (tag === "tenant_payslip") {
-          label = "Recibo inquilino";
-        } else if (tag.startsWith("guarantor_payslip_")) {
-          const n = tag.replace("guarantor_payslip_", "");
-          label = `Recibo garante ${n}`;
-        } else if (tag === "deed") {
-          label = "Escritura";
-          icon = "gavel";
-        }
+            let label = "Documento";
+            let icon = "description";
+            if (tag === "tenant_payslip") {
+              label = "Recibo inquilino";
+            } else if (tag.startsWith("guarantor_payslip_")) {
+              const n = tag.replace("guarantor_payslip_", "");
+              label = `Recibo garante ${n}`;
+            } else if (tag === "deed") {
+              label = "Escritura";
+              icon = "gavel";
+            }
 
-        verDocsWithDate.push({
-          date,
-          row: {
-            id: `${d.id}_${tag}_${fileName || "file"}`,
-            inquilino: who,
-            doc: fileName ? `${label} · ${fileName}` : label,
-            fecha: formatDate(date),
-            estado: status,
-            icon,
-            url
+            verDocsWithDate.push({
+              date,
+              row: {
+                id: `${d.id}_${tag}_${fileName || "file"}`,
+                inquilino: who,
+                doc: fileName ? `${label} · ${fileName}` : label,
+                fecha: formatDate(date),
+                estado: status,
+                icon,
+                url
+              }
+            });
           }
-        });
+        }
+      } catch (e: any) {
+        setAppError(
+          "No se pudo leer verification_requests. Revisá reglas de Firestore para permitir lectura a administradores."
+        );
       }
+
+      verDocsWithDate.sort((a, b) => b.date.getTime() - a.date.getTime());
+      const mergedDocs = [...verDocsWithDate.map((x) => x.row), ...baseDocs];
+      setDocuments(mergedDocs);
+    } catch (e: any) {
+      setAppError(e?.message || String(e));
     }
-
-    verDocsWithDate.sort((a, b) => b.date.getTime() - a.date.getTime());
-    const mergedDocs = [...verDocsWithDate.map((x) => x.row), ...baseDocs];
-    setDocuments(mergedDocs);
-
-    setUsers(
-      usrSnap.docs.map((d) => {
-        const data = d.data() as any;
-        return {
-          id: d.id,
-          name: data.name || "Usuario",
-          email: data.email || "",
-          rol: data.rol || "Agente",
-          estado: data.estado || "Activo",
-          notif: Array.isArray(data.notif) ? data.notif : [true, true, false, true]
-        };
-      })
-    );
   }
 
   function requireAdmin(next: () => void) {
@@ -1533,6 +1544,45 @@ export default function App() {
             },
             { merge: true }
           );
+
+          try {
+            for (const u of uploaded) {
+              const tag = String(u?.tag || "");
+              const fileName = String(u?.name || "");
+              const url = typeof u?.url === "string" ? u.url : "";
+              if (!tag || !url) continue;
+
+              let label = "Documento";
+              let icon = "description";
+              if (tag === "tenant_payslip") {
+                label = "Recibo inquilino";
+              } else if (tag.startsWith("guarantor_payslip_")) {
+                const n = tag.replace("guarantor_payslip_", "");
+                label = `Recibo garante ${n}`;
+              } else if (tag === "deed") {
+                label = "Escritura";
+                icon = "gavel";
+              }
+
+              const docId = `${verificationRef.id}__${tag}`;
+              await setDoc(
+                doc(db, "documents", docId),
+                {
+                  tenantName: name,
+                  name: fileName ? `${label} · ${fileName}` : label,
+                  status: preApproved ? "PreAprobado" : "Pendiente",
+                  icon,
+                  url,
+                  verificationId: verificationRef.id,
+                  tag,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp()
+                },
+                { merge: true }
+              );
+            }
+          } catch {
+          }
 
           if (currentUser && !currentUser.isAnonymous) {
             await loadPrivateData();
