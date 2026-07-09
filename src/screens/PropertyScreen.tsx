@@ -169,18 +169,6 @@ export default function PropertyScreen({
                 `position:relative;cursor:pointer;background:${g.bg};grid-row:${g.span};overflow:hidden`
               )}
             >
-              <div
-                style={css(
-                  "position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.05) 0 2px,transparent 2px 24px)"
-                )}
-              />
-              <div
-                style={css(
-                  "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.34);font:600 11px ui-monospace,monospace;letter-spacing:.1em"
-                )}
-              >
-                {g.label}
-              </div>
             </div>
           ))}
         </div>
@@ -323,13 +311,6 @@ export default function PropertyScreen({
                   )}
                 >
                   <div style={css(`position:relative;height:140px;background:${sm.bg}`)}>
-                    <div
-                      style={css(
-                        "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font:600 10px ui-monospace,monospace;letter-spacing:.1em"
-                      )}
-                    >
-                      {sm.photoLabel}
-                    </div>
                   </div>
                   <div style={css("padding:14px 15px 16px")}>
                     <div style={css("font:700 15px/1.2 'Plus Jakarta Sans';color:#1f2a26")}>
@@ -454,18 +435,6 @@ export default function PropertyScreen({
               `width:min(78vw,1000px);height:min(74vh,640px);border-radius:16px;background:${lightboxBg};position:relative;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.8)`
             )}
           >
-            <div
-              style={css(
-                "position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.05) 0 2px,transparent 2px 28px)"
-              )}
-            />
-            <div
-              style={css(
-                "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font:600 14px ui-monospace,monospace;letter-spacing:.12em"
-              )}
-            >
-              {lightboxLabel}
-            </div>
           </div>
           <button
             onClick={(e) => {

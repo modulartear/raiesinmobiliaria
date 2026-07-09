@@ -149,21 +149,9 @@ export default function LandingScreen({
         <div style={css("position:absolute;inset:0;background:linear-gradient(125deg,#0d2c23 0%,#123A2F 42%,#1c5040 100%)")} />
         <div
           style={css(
-            "position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.025) 0 2px,transparent 2px 26px)"
+            "position:absolute;top:0;right:0;width:62%;height:100%;background:linear-gradient(90deg,#123A2F 0%,rgba(18,58,47,.12) 36%,transparent 60%);opacity:.95"
           )}
         />
-        <div
-          style={css(
-            "position:absolute;top:0;right:0;width:62%;height:100%;background:linear-gradient(90deg,#123A2F 0%,rgba(18,58,47,.1) 30%,transparent 55%),repeating-linear-gradient(38deg,rgba(255,255,255,.05) 0 3px,transparent 3px 30px);opacity:.9"
-          )}
-        />
-        <div
-          style={css(
-            "position:absolute;top:0;right:0;width:62%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.28);font:600 12px/1 ui-monospace,monospace;letter-spacing:.12em"
-          )}
-        >
-          FOTO · FACHADA PROPIEDAD
-        </div>
         <div
           style={css(
             "position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,44,35,.35),transparent 30%,rgba(13,44,35,.15))"
@@ -432,18 +420,6 @@ export default function LandingScreen({
               style={p.cardStyle}
             >
               <div style={css(`position:relative;height:185px;background:${p.bg};overflow:hidden`)}>
-                <div
-                  style={css(
-                    "position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.06) 0 2px,transparent 2px 22px)"
-                  )}
-                />
-                <div
-                  style={css(
-                    "position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font:600 10.5px ui-monospace,monospace;letter-spacing:.1em"
-                  )}
-                >
-                  {p.photoLabel}
-                </div>
                 <div
                   style={css(
                     "position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:7px;align-items:flex-start"
