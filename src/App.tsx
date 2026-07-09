@@ -109,6 +109,14 @@ type UserProfile = {
   notif: boolean[];
 };
 
+type ChatMessage = {
+  id: string;
+  role: "bot" | "user";
+  text: string;
+};
+
+type ChatStep = "main" | "search" | "requirements" | "contact";
+
 function defaultActionForm(): ActionFormState {
   return { name: "", email: "", phone: "", monthlyIncome: "", message: "" };
 }
@@ -127,6 +135,22 @@ function applicantKeyFrom(name: string, email: string, phone: string) {
       .replace(/\s+/g, " ")
       .replace(/[^\w@.+\- ]+/g, "");
   return `${normalize(name)}__${normalize(email)}__${String(phone || "").replace(/\D/g, "")}`;
+}
+
+function verificationOptionSummary(option: VerificationConfig["options"][number]) {
+  const parts: string[] = [];
+  if (option.tenantPayslipRequired) {
+    parts.push("recibo de sueldo del inquilino");
+  }
+  if (option.guarantorPayslipsMin > 0) {
+    parts.push(
+      `${option.guarantorPayslipsMin} recibos de sueldo de garantes con mas de ${option.guarantorSeniorityYearsMin} anos de antiguedad`
+    );
+  }
+  if (option.deedRequired) {
+    parts.push(`1 escritura de inmueble en ${option.deedLocationLabel || "la ciudad"}`);
+  }
+  return `${option.title}: ${parts.join(" + ")}.`;
 }
 
 export default function App() {
@@ -169,6 +193,14 @@ export default function App() {
 
   const [chatOpen, setChatOpen] = useState(true);
   const [chatDraft, setChatDraft] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: "chat-bot-welcome",
+      role: "bot",
+      text: "Hola, soy RAIES BOT. Estoy para ayudarte con propiedades, requisitos y verificacion. Elegi una opcion para continuar."
+    }
+  ]);
+  const [chatStep, setChatStep] = useState<ChatStep>("main");
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -704,6 +736,119 @@ export default function App() {
     }
     const text = encodeURIComponent(`Hola, quiero consultar por ${selectedProperty.title}.`);
     window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+  }
+
+  function appendChatMessages(entries: Array<Omit<ChatMessage, "id">>) {
+    setChatMessages((prev) => [
+      ...prev,
+      ...entries.map((entry, idx) => ({
+        id: `chat-${Date.now()}-${prev.length + idx}`,
+        ...entry
+      }))
+    ]);
+  }
+
+  function replyFromBot(text: string, nextStep: ChatStep = "main") {
+    appendChatMessages([{ role: "bot", text }]);
+    setChatStep(nextStep);
+  }
+
+  function chooseChatOption(userText: string, botText: string, nextStep: ChatStep = "main") {
+    appendChatMessages([
+      { role: "user", text: userText },
+      { role: "bot", text: botText }
+    ]);
+    setChatStep(nextStep);
+  }
+
+  async function startVerificationFromChat() {
+    appendChatMessages([
+      { role: "user", text: "Quiero iniciar la verificacion" },
+      {
+        role: "bot",
+        text: "Perfecto. Voy a abrir la verificacion online para que cargues la documentacion."
+      }
+    ]);
+    setChatStep("main");
+    if (services.ready && services.auth && !currentUser) {
+      try {
+        await signInAnonymously(services.auth);
+      } catch (e: any) {
+        setAppError(e?.message || String(e));
+        return;
+      }
+    }
+    setVerificationOpen(true);
+  }
+
+  function submitChatDraft() {
+    const text = chatDraft.trim();
+    if (!text) return;
+    const normalized = text.toLowerCase();
+    setChatDraft("");
+    appendChatMessages([{ role: "user", text }]);
+
+    if (
+      normalized.includes("requis") ||
+      normalized.includes("verific") ||
+      normalized.includes("garant") ||
+      normalized.includes("recibo")
+    ) {
+      const summaries = verificationConfig.options.map(verificationOptionSummary).join("\n");
+      replyFromBot(
+        `Estos son los requisitos de verificacion disponibles:\n${summaries}\nSi queres, elegi una opcion y te guio para continuar.`,
+        "requirements"
+      );
+      return;
+    }
+
+    if (normalized.includes("depart")) {
+      setSearchType("Departamento");
+      setScreen("landing");
+      replyFromBot(
+        "Perfecto. Ya deje filtrados los departamentos para que revises las opciones disponibles.",
+        "search"
+      );
+      return;
+    }
+
+    if (normalized.includes("casa")) {
+      setSearchType("Casa");
+      setScreen("landing");
+      replyFromBot("Listo. Ya deje filtradas las casas disponibles para vos.", "search");
+      return;
+    }
+
+    if (
+      normalized.includes("propiedad") ||
+      normalized.includes("alquiler") ||
+      normalized.includes("buscar") ||
+      normalized.includes("ver propiedades")
+    ) {
+      replyFromBot(
+        "Decime si queres ver departamentos, casas o todas las propiedades y te dejo el filtro listo.",
+        "search"
+      );
+      return;
+    }
+
+    if (
+      normalized.includes("whatsapp") ||
+      normalized.includes("asesor") ||
+      normalized.includes("contacto") ||
+      normalized.includes("telefono")
+    ) {
+      replyFromBot(
+        "Puedo derivarte por WhatsApp o dejar una consulta para que el equipo te contacte.",
+        "contact"
+      );
+      return;
+    }
+
+    replyFromBot(
+      "Puedo ayudarte a buscar propiedades, explicarte los requisitos o iniciar la verificacion. Elegi una opcion y seguimos.",
+      "main"
+    );
   }
 
   async function saveRequirements() {
@@ -1417,13 +1562,165 @@ export default function App() {
   );
 
   const quickReplies = useMemo(() => {
+    if (chatStep === "search") {
+      return [
+        {
+          label: "Departamentos",
+          onClick: () => {
+            setSearchType("Departamento");
+            setScreen("landing");
+            chooseChatOption(
+              "Quiero ver departamentos",
+              "Perfecto. Ya deje filtrados los departamentos disponibles para que los revises."
+            );
+          }
+        },
+        {
+          label: "Casas",
+          onClick: () => {
+            setSearchType("Casa");
+            setScreen("landing");
+            chooseChatOption("Quiero ver casas", "Listo. Ya deje filtradas las casas disponibles.");
+          }
+        },
+        {
+          label: "Ver todas",
+          onClick: () => {
+            setSearchType("Todos los tipos");
+            setSearchLocation("");
+            setScreen("landing");
+            chooseChatOption(
+              "Quiero ver todas las propiedades",
+              "Genial. Volvi a mostrarte todas las propiedades disponibles."
+            );
+          }
+        },
+        {
+          label: "Volver",
+          onClick: () =>
+            chooseChatOption(
+              "Volver al menu principal",
+              "Perfecto. Volvemos al menu principal. Elegi como queres que te ayude.",
+              "main"
+            )
+        }
+      ];
+    }
+
+    if (chatStep === "requirements") {
+      const option1 = verificationConfig.options[0];
+      const option2 = verificationConfig.options[1];
+      return [
+        {
+          label: option1?.title || "Opcion 1",
+          onClick: () =>
+            chooseChatOption(
+              option1?.title || "Opcion 1",
+              option1
+                ? verificationOptionSummary(option1)
+                : "La opcion 1 requiere recibo del inquilino y garantias con recibo."
+            )
+        },
+        {
+          label: option2?.title || "Opcion 2",
+          onClick: () =>
+            chooseChatOption(
+              option2?.title || "Opcion 2",
+              option2
+                ? verificationOptionSummary(option2)
+                : "La opcion 2 requiere recibo del inquilino, garantias y escritura."
+            )
+        },
+        { label: "Iniciar verificacion", onClick: () => void startVerificationFromChat() },
+        {
+          label: "Volver",
+          onClick: () =>
+            chooseChatOption(
+              "Volver al menu principal",
+              "Volvimos al menu principal. Podes buscar propiedades, consultar requisitos o hablar con un asesor.",
+              "main"
+            )
+        }
+      ];
+    }
+
+    if (chatStep === "contact") {
+      return [
+        {
+          label: "WhatsApp",
+          onClick: () => {
+            chooseChatOption(
+              "Quiero hablar por WhatsApp",
+              "Te abro WhatsApp para que hables directo con el equipo de RAIES."
+            );
+            openWhatsapp();
+          }
+        },
+        {
+          label: "Dejar consulta",
+          onClick: () => {
+            chooseChatOption(
+              "Quiero dejar una consulta",
+              "Perfecto. Completa tu mensaje y te abrimos el formulario para registrarlo."
+            );
+            setActionKind("chat");
+            setActionForm((p) => ({ ...p, message: "Consulta desde RAIES BOT" }));
+          }
+        },
+        {
+          label: "Ver requisitos",
+          onClick: () =>
+            chooseChatOption(
+              "Quiero ver requisitos",
+              "Te muestro las opciones de verificacion disponibles.",
+              "requirements"
+            )
+        },
+        {
+          label: "Volver",
+          onClick: () =>
+            chooseChatOption(
+              "Volver al menu principal",
+              "Perfecto. Volvemos al menu principal.",
+              "main"
+            )
+        }
+      ];
+    }
+
     return [
-      { label: "Departamentos", onClick: () => setSearchType("Departamento") },
-      { label: "Casas", onClick: () => setSearchType("Casa") },
-      { label: "Zonas", onClick: () => setSearchLocation("Caseros") },
-      { label: "Consultar requisitos", onClick: () => setVerificationOpen(true) }
+      {
+        label: "Buscar propiedad",
+        onClick: () =>
+          chooseChatOption(
+            "Quiero buscar una propiedad",
+            "Claro. Decime si queres ver departamentos, casas o todas las propiedades.",
+            "search"
+          )
+      },
+      {
+        label: "Requisitos",
+        onClick: () => {
+          const summaries = verificationConfig.options.map(verificationOptionSummary).join("\n");
+          chooseChatOption(
+            "Quiero conocer los requisitos",
+            `Estas son las opciones disponibles:\n${summaries}`,
+            "requirements"
+          );
+        }
+      },
+      { label: "Iniciar verificacion", onClick: () => void startVerificationFromChat() },
+      {
+        label: "Contactar asesor",
+        onClick: () =>
+          chooseChatOption(
+            "Quiero contactar un asesor",
+            "Perfecto. Puedo derivarte por WhatsApp o ayudarte a dejar una consulta.",
+            "contact"
+          )
+      }
     ];
-  }, []);
+  }, [chatStep, verificationConfig, currentUser, services.ready, services.auth]);
 
   const authPrimaryLabel = currentUser && !currentUser.isAnonymous ? "Dashboard" : "Iniciar sesión";
 
@@ -1472,12 +1769,10 @@ export default function App() {
           chatOpen={chatOpen}
           chatIcon={chatOpen ? "close" : "chat"}
           onToggleChat={() => setChatOpen((v) => !v)}
+          chatMessages={chatMessages}
           chatDraft={chatDraft}
           onChatDraft={setChatDraft}
-          onSubmitChat={() => {
-            setActionKind("chat");
-            setActionForm((p) => ({ ...p, message: chatDraft || "Consulta desde el chat" }));
-          }}
+          onSubmitChat={submitChatDraft}
         />
       )}
 

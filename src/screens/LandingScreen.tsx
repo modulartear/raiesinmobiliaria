@@ -1,6 +1,7 @@
 import { css } from "../lib/css";
 import { logoRaiesUrl } from "../lib/assets";
 import MsIcon from "../components/MsIcon";
+import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import Footer from "../components/Footer";
 import type { SettingsRecord } from "../data/models";
@@ -29,6 +30,7 @@ type PropertyCard = {
 };
 type StepCard = { icon: string; title: string; body: string };
 type QuickReply = { label: string; onClick: () => void };
+type ChatMessage = { id: string; role: "bot" | "user"; text: string };
 
 export default function LandingScreen({
   nav,
@@ -57,6 +59,7 @@ export default function LandingScreen({
   chatOpen,
   chatIcon,
   onToggleChat,
+  chatMessages,
   chatDraft,
   onChatDraft,
   onSubmitChat
@@ -87,10 +90,18 @@ export default function LandingScreen({
   chatOpen: boolean;
   chatIcon: string;
   onToggleChat: () => void;
+  chatMessages: ChatMessage[];
   chatDraft: string;
   onChatDraft: (v: string) => void;
   onSubmitChat: () => void;
 }) {
+  const chatBodyRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!chatOpen || !chatBodyRef.current) return;
+    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+  }, [chatMessages, quickReplies, chatOpen]);
+
   return (
     <div className="landing-screen" data-screen-label="Landing" style={css("background:#EBECEE")}>
       <header
@@ -626,14 +637,33 @@ export default function LandingScreen({
               <MsIcon name="close" style={{ fontSize: 18 }} />
             </button>
           </div>
-          <div style={css("padding:18px;background:#F7F8F8;max-height:300px;overflow:auto")}>
-            <div
-              style={css(
-                "background:#fff;border-radius:14px;border-top-left-radius:4px;padding:13px 15px;font-size:13.5px;line-height:1.5;color:#3a443f;box-shadow:0 4px 14px -8px rgba(0,0,0,.2)"
-              )}
-            >
-              ¡Hola! Soy RAIES BOT 🏠 Estoy aquí para ayudarte a encontrar tu próxima
-              propiedad. ¿Qué estás buscando?
+          <div
+            ref={chatBodyRef}
+            style={css("padding:18px;background:#F7F8F8;max-height:300px;overflow:auto")}
+          >
+            <div style={css("display:flex;flex-direction:column;gap:10px")}>
+              {chatMessages.map((message) => (
+                <div
+                  key={message.id}
+                  style={css(
+                    `display:flex;justify-content:${
+                      message.role === "user" ? "flex-end" : "flex-start"
+                    }`
+                  )}
+                >
+                  <div
+                    style={css(
+                      `max-width:86%;padding:13px 15px;border-radius:14px;${
+                        message.role === "user"
+                          ? "border-top-right-radius:4px;background:#123A2F;color:#fff"
+                          : "border-top-left-radius:4px;background:#fff;color:#3a443f;box-shadow:0 4px 14px -8px rgba(0,0,0,.2)"
+                      };font-size:13.5px;line-height:1.5;white-space:pre-line`
+                    )}
+                  >
+                    {message.text}
+                  </div>
+                </div>
+              ))}
             </div>
             <div style={css("display:flex;flex-wrap:wrap;gap:8px;margin-top:14px")}>
               {quickReplies.map((q) => (
