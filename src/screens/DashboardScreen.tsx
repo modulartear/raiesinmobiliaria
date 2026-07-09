@@ -23,13 +23,19 @@ type PropertyRow = {
   onRemove: () => void;
 };
 type SolicitudRow = {
+  id: string;
   initial: string;
   name: string;
+  email: string;
+  phone: string;
+  propertyId: string;
   prop: string;
   fecha: string;
   ingreso: string;
   status: string;
   badge: string;
+  docsCount: number;
+  approvedCount: number;
 };
 type TenantRow = {
   initial: string;
@@ -41,6 +47,7 @@ type TenantRow = {
   badge: string;
 };
 type DocumentRow = {
+  id: string;
   inquilino: string;
   doc: string;
   fecha: string;
@@ -48,6 +55,7 @@ type DocumentRow = {
   badge: string;
   icon: string;
   url?: string;
+  approved?: boolean;
 };
 type RequirementRow = {
   label: string;
@@ -133,6 +141,10 @@ export default function DashboardScreen({
   onVerificationConfig,
   saveVerificationLabel,
   onSaveVerification,
+  requestReview,
+  onOpenRequestReview,
+  onCloseRequestReview,
+  onToggleRequestDocumentApproval,
   consultasInbox,
   userSearch,
   onUserSearch,
@@ -205,6 +217,20 @@ export default function DashboardScreen({
   onVerificationConfig: (patch: Partial<VerificationConfig>) => void;
   saveVerificationLabel: string;
   onSaveVerification: () => void;
+  requestReview: null | {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    propertyTitle: string;
+    ingreso: string;
+    status: string;
+    allApproved: boolean;
+    docs: DocumentRow[];
+  };
+  onOpenRequestReview: (requestId: string) => void;
+  onCloseRequestReview: () => void;
+  onToggleRequestDocumentApproval: (docId: string) => void;
   consultasInbox: ConsultaInboxRow[];
   userSearch: string;
   onUserSearch: (v: string) => void;
@@ -907,6 +933,7 @@ export default function DashboardScreen({
                   </span>
                   <div style={css("display:flex;justify-content:flex-end")}>
                     <span
+                      onClick={() => onOpenRequestReview(r.id)}
                       style={css(
                         "width:32px;height:32px;border-radius:8px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;cursor:pointer"
                       )}
@@ -1596,6 +1623,140 @@ export default function DashboardScreen({
             </div>
           )}
         </div>
+
+        {requestReview && (
+          <div
+            style={css(
+              "position:fixed;inset:0;z-index:440;background:rgba(8,20,16,.62);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px"
+            )}
+          >
+            <div
+              style={css(
+                "width:min(920px,100%);max-height:min(88vh,920px);overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08)"
+              )}
+            >
+              <div style={css("display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px")}>
+                <div>
+                  <div style={css("font-family:'Schibsted Grotesk';font-weight:800;font-size:24px;color:#123A2F")}>
+                    Solicitud y documentación
+                  </div>
+                  <div style={css("font-size:13px;color:#6b7570;margin-top:6px")}>
+                    Revisá los archivos del solicitante y aprobá cada documento individualmente.
+                  </div>
+                </div>
+                <button
+                  onClick={onCloseRequestReview}
+                  style={css(
+                    "width:36px;height:36px;border-radius:10px;border:none;background:#F4F5F5;color:#123A2F;cursor:pointer;display:flex;align-items:center;justify-content:center"
+                  )}
+                >
+                  <MsIcon name="close" style={{ fontSize: 20 }} />
+                </button>
+              </div>
+
+              <div style={css("display:grid;grid-template-columns:1.2fr .9fr;gap:16px;align-items:start")}>
+                <div style={css("background:#F7F8F8;border:1px solid rgba(18,58,47,.08);border-radius:16px;padding:18px")}>
+                  <div style={css("font:800 14px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:14px")}>
+                    Datos del solicitante
+                  </div>
+                  <div style={css("display:grid;grid-template-columns:1fr 1fr;gap:12px")}>
+                    <div style={css("font-size:13px;color:#5a6460")}><strong style={{ color: "#123A2F" }}>Nombre:</strong> {requestReview.name}</div>
+                    <div style={css("font-size:13px;color:#5a6460")}><strong style={{ color: "#123A2F" }}>Estado:</strong> {requestReview.status}</div>
+                    <div style={css("font-size:13px;color:#5a6460")}><strong style={{ color: "#123A2F" }}>Propiedad:</strong> {requestReview.propertyTitle}</div>
+                    <div style={css("font-size:13px;color:#5a6460")}><strong style={{ color: "#123A2F" }}>Ingreso:</strong> {requestReview.ingreso}</div>
+                  </div>
+                  <div
+                    style={css(
+                      "margin-top:16px;padding:14px 16px;border-radius:14px;background:" +
+                        (requestReview.allApproved ? "rgba(32,120,77,.10)" : "rgba(201,163,77,.12)") +
+                        ";border:1px solid " +
+                        (requestReview.allApproved ? "rgba(32,120,77,.18)" : "rgba(201,163,77,.30)")
+                    )}
+                  >
+                    <div style={css("font:800 13px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:6px")}>
+                      {requestReview.allApproved ? "Documentación aprobada" : "Pendiente de aprobación"}
+                    </div>
+                    <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                      {requestReview.allApproved
+                        ? `Contacto: ${requestReview.email || "Sin email"} · ${requestReview.phone || "Sin teléfono"}`
+                        : "Aprobá todos los archivos para dejar la solicitud en estado Aprobado."}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={css("background:#fff;border:1px solid rgba(18,58,47,.08);border-radius:16px;padding:18px")}>
+                  <div style={css("font:800 14px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
+                    Resumen documental
+                  </div>
+                  <div style={css("font-size:12.5px;color:#6b7570;line-height:1.45")}>
+                    {requestReview.docs.filter((d) => d.approved).length} de {requestReview.docs.length} archivos aprobados.
+                  </div>
+                </div>
+              </div>
+
+              <div style={css("margin-top:18px;background:#fff;border:1px solid rgba(18,58,47,.08);border-radius:16px;overflow:hidden")}>
+                <div
+                  style={css(
+                    "display:grid;grid-template-columns:2.2fr 1fr 1fr .9fr;gap:16px;padding:15px 22px;background:#F7F8F8;border-bottom:1px solid #EEF0F0;font:700 11px/1 'Plus Jakarta Sans';color:#8a928e;letter-spacing:.04em"
+                  )}
+                >
+                  <span>DOCUMENTO</span>
+                  <span>FECHA</span>
+                  <span>ESTADO</span>
+                  <span style={css("text-align:right")}>ACCIONES</span>
+                </div>
+                {requestReview.docs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    style={css(
+                      "display:grid;grid-template-columns:2.2fr 1fr 1fr .9fr;gap:16px;padding:14px 22px;border-bottom:1px solid #F2F3F3;align-items:center"
+                    )}
+                  >
+                    <div style={css("display:flex;align-items:center;gap:10px")}>
+                      <span
+                        style={css(
+                          "width:34px;height:34px;flex:none;border-radius:9px;background:rgba(32,88,67,.09);display:flex;align-items:center;justify-content:center;color:#205843"
+                        )}
+                      >
+                        <MsIcon name={doc.icon} style={{ fontSize: 18 }} />
+                      </span>
+                      <span style={css("font-size:13px;color:#3a443f")}>{doc.doc}</span>
+                    </div>
+                    <span style={css("font-size:13px;color:#5a6460")}>{doc.fecha}</span>
+                    <span>
+                      <span style={css(doc.badge)}>{doc.estado}</span>
+                    </span>
+                    <div style={css("display:flex;gap:8px;justify-content:flex-end")}>
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={css(
+                            "width:34px;height:34px;border-radius:9px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#205843;text-decoration:none"
+                          )}
+                        >
+                          <MsIcon name="visibility" style={{ fontSize: 18 }} />
+                        </a>
+                      ) : null}
+                      <button
+                        onClick={() => onToggleRequestDocumentApproval(doc.id)}
+                        style={css(
+                          "width:34px;height:34px;border-radius:9px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;background:" +
+                            (doc.approved ? "rgba(32,120,77,.14)" : "rgba(201,163,77,.16)") +
+                            ";color:" +
+                            (doc.approved ? "#1c7a4d" : "#9a6b12")
+                        )}
+                      >
+                        <MsIcon name="check" style={{ fontSize: 18 }} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

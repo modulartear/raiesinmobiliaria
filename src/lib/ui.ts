@@ -8,6 +8,7 @@ export function statusKind(status: string): BadgeKind {
     Respondida: "ok",
     PreAprobado: "ok",
     Preaprobado: "ok",
+    Aprobado: "ok",
     Reservado: "warn",
     Reservada: "warn",
     "En revisión": "warn",

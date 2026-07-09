@@ -39,10 +39,15 @@ export type ConsultationRecord = {
 export type RentalRequestRecord = {
   id: string;
   name: string;
+  email: string;
+  phone: string;
+  propertyId?: string;
   propertyTitle: string;
   fecha: string;
   ingreso: string;
   status: string;
+  applicantKey?: string;
+  verificationId?: string;
 };
 
 export type TenantRecord = {
@@ -62,6 +67,10 @@ export type DocumentRecord = {
   estado: string;
   icon: string;
   url?: string;
+  applicantKey?: string;
+  requestId?: string;
+  verificationId?: string;
+  approved?: boolean;
 };
 
 export type UserRecord = {

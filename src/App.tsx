@@ -119,6 +119,16 @@ function canManage(profile: UserProfile | null) {
   return role.includes("admin") || role.includes("administrador");
 }
 
+function applicantKeyFrom(name: string, email: string, phone: string) {
+  const normalize = (value: string) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/[^\w@.+\- ]+/g, "");
+  return `${normalize(name)}__${normalize(email)}__${String(phone || "").replace(/\D/g, "")}`;
+}
+
 export default function App() {
   const services = useMemo(() => initFirebase(), []);
 
@@ -206,6 +216,7 @@ export default function App() {
   const [savingRequirements, setSavingRequirements] = useState(false);
   const [savingVerificationConfig, setSavingVerificationConfig] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [reviewingRequestId, setReviewingRequestId] = useState("");
 
   useEffect(() => {
     if (!services.ready) return;
@@ -369,13 +380,20 @@ export default function App() {
       setRequests(
         reqSnap.docs.map((d) => {
           const data = d.data() as any;
+          const email = data.email || "";
+          const phone = data.phone || "";
           return {
             id: d.id,
             name: data.name || "Sin nombre",
+            email,
+            phone,
+            propertyId: data.propertyId || "",
             propertyTitle: data.propertyTitle || "Propiedad",
             fecha: formatDate(asDate(data.createdAt)),
             ingreso: formatCurrency(Number(data.monthlyIncome || 0)),
-            status: data.status || "En revisión"
+            status: data.status || "En revisión",
+            applicantKey: data.applicantKey || applicantKeyFrom(data.name || "", email, phone),
+            verificationId: data.verificationId || ""
           };
         })
       );
@@ -423,7 +441,11 @@ export default function App() {
           fecha: formatDate(asDate(data.createdAt)),
           estado: data.status || "Pendiente",
           icon: data.icon || "description",
-          url: typeof data.url === "string" ? data.url : undefined
+          url: typeof data.url === "string" ? data.url : undefined,
+          applicantKey: data.applicantKey || "",
+          requestId: data.requestId || "",
+          verificationId: data.verificationId || "",
+          approved: Boolean(data.approved)
         };
       });
 
@@ -599,6 +621,7 @@ export default function App() {
     try {
       const monthlyIncome =
         Number(String(actionForm.monthlyIncome || "").replace(/[^\d]/g, "")) || 0;
+      const applicantKey = applicantKeyFrom(actionForm.name, actionForm.email, actionForm.phone);
       const payload: any = {
         name: actionForm.name,
         email: actionForm.email,
@@ -608,6 +631,7 @@ export default function App() {
         propertyTitle: selectedProperty.title,
         monthlyIncome,
         status: "Nueva",
+        applicantKey,
         channel: actionKind === "chat" ? "RAIES BOT" : "Web",
         createdAt: services.ready ? serverTimestamp() : new Date()
       };
@@ -617,7 +641,16 @@ export default function App() {
           actionKind === "request" || actionKind === "verification"
             ? "rental_requests"
             : "consultations";
-        await addDoc(collection(services.db, target), payload);
+        const createdRef = await addDoc(collection(services.db, target), payload);
+        if (actionKind === "request") {
+          await setDoc(
+            doc(services.db, target, createdRef.id),
+            {
+              requestId: createdRef.id
+            },
+            { merge: true }
+          );
+        }
         if (currentUser) await loadPrivateData();
       } else {
         if (actionKind === "request" || actionKind === "verification") {
@@ -625,10 +658,14 @@ export default function App() {
             {
               id: `local-${Date.now()}`,
               name: payload.name,
+              email: payload.email,
+              phone: payload.phone,
+              propertyId: payload.propertyId,
               propertyTitle: payload.propertyTitle,
               fecha: formatDate(new Date()),
               ingreso: formatCurrency(payload.monthlyIncome),
-              status: "En revisión"
+              status: "En revisión",
+              applicantKey
             },
             ...prev
           ]);
@@ -708,6 +745,73 @@ export default function App() {
       setAppError(e?.message || String(e));
     } finally {
       setSavingSettings(false);
+    }
+  }
+
+  async function toggleRequestDocumentApproval(docId: string) {
+    const targetDoc = documents.find((d) => d.id === docId);
+    if (!targetDoc) return;
+
+    const request =
+      requestReviewMap.find((r) => r.docs.some((d) => d.id === docId)) ||
+      requestReviewMap.find((r) => r.id === reviewingRequestId) ||
+      null;
+    const nextApproved = !targetDoc.approved;
+
+    const nextDocuments = documents.map((d) =>
+      d.id === docId
+        ? {
+            ...d,
+            approved: nextApproved,
+            estado: nextApproved ? "Aprobado" : "Pendiente"
+          }
+        : d
+    );
+    setDocuments(nextDocuments);
+
+    if (request) {
+      const relatedDocs = nextDocuments.filter((d) => {
+        if (d.requestId && d.requestId === request.id) return true;
+        if (d.applicantKey && request.applicantKey && d.applicantKey === request.applicantKey) return true;
+        return !d.requestId && !d.applicantKey && d.inquilino.trim().toLowerCase() === request.name.trim().toLowerCase();
+      });
+      const nextStatus =
+        relatedDocs.length > 0 && relatedDocs.every((d) => d.approved) ? "Aprobado" : "En revisión";
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === request.id
+            ? {
+                ...r,
+                status: nextStatus
+              }
+            : r
+        )
+      );
+
+      if (services.ready && services.db) {
+        try {
+          await setDoc(
+            doc(services.db, "documents", docId),
+            {
+              approved: nextApproved,
+              status: nextApproved ? "Aprobado" : "Pendiente",
+              requestId: request.id,
+              applicantKey: request.applicantKey || targetDoc.applicantKey || ""
+            },
+            { merge: true }
+          );
+          await setDoc(
+            doc(services.db, "rental_requests", request.id),
+            {
+              status: nextStatus,
+              verificationId: request.verificationId || targetDoc.verificationId || ""
+            },
+            { merge: true }
+          );
+        } catch (e: any) {
+          setAppError(e?.message || String(e));
+        }
+      }
     }
   }
 
@@ -965,17 +1069,41 @@ export default function App() {
       }));
   }, [properties, propertySearch]);
 
+  const requestReviewMap = useMemo(() => {
+    return requests.map((r) => {
+      const docs = documents.filter((d) => {
+        if (d.requestId && d.requestId === r.id) return true;
+        if (d.applicantKey && r.applicantKey && d.applicantKey === r.applicantKey) return true;
+        return !d.requestId && !d.applicantKey && d.inquilino.trim().toLowerCase() === r.name.trim().toLowerCase();
+      });
+      const approvedCount = docs.filter((d) => d.approved).length;
+      const allApproved = docs.length > 0 && approvedCount === docs.length;
+      return {
+        ...r,
+        docs,
+        approvedCount,
+        allApproved
+      };
+    });
+  }, [requests, documents]);
+
   const solicitudesFull = useMemo(() => {
-    return requests.map((r) => ({
+    return requestReviewMap.map((r) => ({
+      id: r.id,
       initial: r.name[0] || "S",
       name: r.name,
+      email: r.email,
+      phone: r.phone,
+      propertyId: r.propertyId || "",
       prop: r.propertyTitle,
       fecha: r.fecha,
       ingreso: r.ingreso,
-      status: r.status,
-      badge: badgeStyle(statusKind(r.status))
+      status: r.allApproved ? "Aprobado" : r.status,
+      badge: badgeStyle(statusKind(r.allApproved ? "Aprobado" : r.status)),
+      docsCount: r.docs.length,
+      approvedCount: r.approvedCount
     }));
-  }, [requests]);
+  }, [requestReviewMap]);
 
   const tenantRows = useMemo(() => {
     const term = tenantSearch.trim().toLowerCase();
@@ -994,15 +1122,46 @@ export default function App() {
 
   const documentRows = useMemo(() => {
     return documents.map((d) => ({
+      id: d.id,
       inquilino: d.inquilino,
       doc: d.doc,
       fecha: d.fecha,
       estado: d.estado,
       badge: badgeStyle(statusKind(d.estado)),
       icon: d.icon,
-      url: d.url
+      url: d.url,
+      approved: d.approved
     }));
   }, [documents]);
+
+  const reviewingRequest = useMemo(() => {
+    return requestReviewMap.find((r) => r.id === reviewingRequestId) || null;
+  }, [requestReviewMap, reviewingRequestId]);
+
+  const reviewingRequestView = useMemo(() => {
+    if (!reviewingRequest) return null;
+    return {
+      id: reviewingRequest.id,
+      name: reviewingRequest.name,
+      email: reviewingRequest.email,
+      phone: reviewingRequest.phone,
+      propertyTitle: reviewingRequest.propertyTitle,
+      ingreso: reviewingRequest.ingreso,
+      status: reviewingRequest.allApproved ? "Aprobado" : reviewingRequest.status,
+      allApproved: reviewingRequest.allApproved,
+      docs: reviewingRequest.docs.map((d) => ({
+        id: d.id,
+        inquilino: d.inquilino,
+        doc: d.doc,
+        fecha: d.fecha,
+        estado: d.approved ? "Aprobado" : d.estado,
+        badge: badgeStyle(statusKind(d.approved ? "Aprobado" : d.estado)),
+        icon: d.icon,
+        url: d.url,
+        approved: d.approved
+      }))
+    };
+  }, [reviewingRequest]);
 
   const requirementRows = useMemo(() => {
     return requirements.map((r, idx) => {
@@ -1371,6 +1530,10 @@ export default function App() {
           }
           saveVerificationLabel={savingVerificationConfig ? "Guardando..." : "Guardar verificación"}
           onSaveVerification={() => requireAdmin(() => void saveVerificationConfig())}
+          requestReview={reviewingRequestView as any}
+          onOpenRequestReview={setReviewingRequestId}
+          onCloseRequestReview={() => setReviewingRequestId("")}
+          onToggleRequestDocumentApproval={(docId) => requireAdmin(() => void toggleRequestDocumentApproval(docId))}
           consultasInbox={consultasInbox as any}
           userSearch={userSearch}
           onUserSearch={setUserSearch}
@@ -1456,6 +1619,7 @@ export default function App() {
 
           const db = services.db;
           const storage = services.storage;
+          const applicantKey = applicantKeyFrom(name, email, phone);
 
           const verificationRef = doc(collection(db, "verification_requests"));
           await setDoc(
@@ -1468,6 +1632,7 @@ export default function App() {
               optionTitle: opt.title,
               guarantorSeniorityYears,
               deedInLocation,
+              applicantKey,
               status: preApproved ? "PreAprobado" : "Pendiente",
               missing,
               createdAt: serverTimestamp(),
@@ -1541,6 +1706,8 @@ export default function App() {
                   status: preApproved ? "PreAprobado" : "Pendiente",
                   icon,
                   url,
+                  approved: false,
+                  applicantKey,
                   verificationId: verificationRef.id,
                   tag,
                   createdAt: serverTimestamp(),

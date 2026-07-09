@@ -221,6 +221,8 @@ export const FALLBACK_REQUESTS: RentalRequestRecord[] = [
   {
     id: "req-1",
     name: "María González",
+    email: "maria@email.com",
+    phone: "+543462111111",
     propertyTitle: "Departamento 2 dorm. - Centro",
     fecha: "29/06/2026",
     ingreso: "$1.450.000",
@@ -229,6 +231,8 @@ export const FALLBACK_REQUESTS: RentalRequestRecord[] = [
   {
     id: "req-2",
     name: "Juan Pérez",
+    email: "juan@email.com",
+    phone: "+543462222222",
     propertyTitle: "Casa 2 dorm. - Zona Norte",
     fecha: "28/06/2026",
     ingreso: "$1.980.000",
@@ -237,6 +241,8 @@ export const FALLBACK_REQUESTS: RentalRequestRecord[] = [
   {
     id: "req-3",
     name: "Ana López",
+    email: "ana@email.com",
+    phone: "+543462333333",
     propertyTitle: "PH 2 dorm. - Zona Sur",
     fecha: "27/06/2026",
     ingreso: "$1.200.000",
