@@ -770,14 +770,6 @@ export default function App() {
       }
     ]);
     setChatStep("main");
-    if (services.ready && services.auth && !currentUser) {
-      try {
-        await signInAnonymously(services.auth);
-      } catch (e: any) {
-        setAppError(e?.message || String(e));
-        return;
-      }
-    }
     setVerificationOpen(true);
   }
 
@@ -1755,13 +1747,6 @@ export default function App() {
             setLoginOpen(true);
           }}
           onOpenVerification={async () => {
-            if (services.ready && services.auth && !currentUser) {
-              try {
-                await signInAnonymously(services.auth);
-              } catch (e: any) {
-                setAppError(e?.message || String(e));
-              }
-            }
             setVerificationOpen(true);
           }}
           settings={settings}
@@ -1950,7 +1935,16 @@ export default function App() {
           if (services.auth && !currentUser) {
             try {
               await signInAnonymously(services.auth);
-            } catch {
+            } catch (e: any) {
+              const code = String(e?.code || "");
+              if (code.includes("auth/admin-restricted-operation")) {
+                setAppError(
+                  "Activá el proveedor Anonimo en Firebase Authentication para guardar verificaciones online."
+                );
+              } else {
+                setAppError(e?.message || String(e));
+              }
+              return;
             }
           }
 
