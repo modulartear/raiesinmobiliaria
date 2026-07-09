@@ -1,0 +1,20 @@
+{
+  "name": "raies-functions",
+  "private": true,
+  "main": "lib/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}
