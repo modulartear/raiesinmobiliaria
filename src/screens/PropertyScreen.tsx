@@ -15,6 +15,7 @@ export default function PropertyScreen({
   status,
   statusStyle,
   address,
+  mapQuery,
   gallery,
   description,
   features,
@@ -44,6 +45,7 @@ export default function PropertyScreen({
   status: string;
   statusStyle: string;
   address: string;
+  mapQuery: string;
   gallery: GalleryImage[];
   description: string;
   features: Feature[];
@@ -280,14 +282,19 @@ export default function PropertyScreen({
                   "position:relative;height:260px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#dfe6e2,#cdd8d2)"
                 )}
               >
-                <div
-                  style={css(
-                    "position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(18,58,47,.06) 0 1px,transparent 1px 42px),repeating-linear-gradient(90deg,rgba(18,58,47,.06) 0 1px,transparent 1px 42px)"
-                  )}
+                <iframe
+                  title="Mapa"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery || address)}&output=embed`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: "0"
+                  }}
                 />
-                <div style={css("position:absolute;top:50%;left:50%;transform:translate(-50%,-100%)")}>
-                  <MsIcon name="location_on" fill style={{ fontSize: 44, color: "#C9A34D", filter: "drop-shadow(0 6px 10px rgba(0,0,0,.3))" as any }} />
-                </div>
                 <div
                   style={css(
                     "position:absolute;bottom:14px;left:14px;font:600 11px ui-monospace,monospace;color:rgba(18,58,47,.5);letter-spacing:.08em"

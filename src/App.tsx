@@ -1799,6 +1799,7 @@ export default function App() {
           status={selectedProperty.status}
           statusStyle={badgeStyle(selectedProperty.statusKind)}
           address={selectedProperty.locationLabel}
+          mapQuery={`${selectedProperty.address || ""} ${selectedProperty.city || ""}`.trim() || selectedProperty.locationLabel}
           gallery={gallery}
           description={selectedProperty.description || ""}
           features={selectedProperty.features?.length ? selectedProperty.features : DEFAULT_FEATURES}
