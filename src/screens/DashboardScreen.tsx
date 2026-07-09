@@ -176,8 +176,8 @@ export default function DashboardScreen({
     price: string;
     beds: string;
     baths: string;
-    area: string;
     description: string;
+    status: string;
     featured: boolean;
   };
   onPropDraft: (patch: Partial<typeof propDraft>) => void;
@@ -677,7 +677,7 @@ export default function DashboardScreen({
                             </div>
                           </div>
 
-                          <div className="dashboard-form-grid-3" style={css("display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px")}>
+                          <div className="dashboard-form-grid-2" style={css("display:grid;grid-template-columns:1fr 1fr;gap:16px")}>
                             <div>
                               <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
                                 Ambientes
@@ -698,19 +698,6 @@ export default function DashboardScreen({
                               <input
                                 value={propDraft.baths}
                                 onChange={(e) => onPropDraft({ baths: e.target.value })}
-                                placeholder="0"
-                                style={css(
-                                  "width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#F8F9FA;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none"
-                                )}
-                              />
-                            </div>
-                            <div>
-                              <label style={css("display:block;font:600 12.5px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:8px")}>
-                                Superficie m²
-                              </label>
-                              <input
-                                value={propDraft.area}
-                                onChange={(e) => onPropDraft({ area: e.target.value })}
                                 placeholder="0"
                                 style={css(
                                   "width:100%;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#F8F9FA;font:500 14px 'Plus Jakarta Sans';color:#333;outline:none"
@@ -825,7 +812,17 @@ export default function DashboardScreen({
                             "display:flex;align-items:center;gap:8px;padding:12px 13px;border-radius:10px;border:1.5px solid #E2E4E6;background:#F8F9FA;margin-bottom:16px"
                           )}
                         >
-                          <span style={css("font:500 14px 'Plus Jakarta Sans';color:#333;flex:1")}>Disponible</span>
+                          <select
+                            value={propDraft.status}
+                            onChange={(e) => onPropDraft({ status: e.target.value })}
+                            style={css(
+                              "font:500 14px 'Plus Jakarta Sans';color:#333;flex:1;border:none;outline:none;background:transparent;appearance:none"
+                            )}
+                          >
+                            <option value="Disponible">Disponible</option>
+                            <option value="Reservada">Reservada</option>
+                            <option value="Alquilada">Alquilada</option>
+                          </select>
                           <MsIcon name="expand_more" style={{ fontSize: 20, color: "#9aa0a3" }} />
                         </div>
                         <div style={css("display:flex;align-items:center;justify-content:space-between;margin-bottom:18px")}>

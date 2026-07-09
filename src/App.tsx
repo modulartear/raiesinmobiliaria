@@ -190,8 +190,8 @@ export default function App() {
     price: "",
     beds: "",
     baths: "",
-    area: "",
     description: "",
+    status: "Disponible",
     featured: true,
     services: DEFAULT_SERVICES.slice(0, 3)
   }));
@@ -498,6 +498,10 @@ export default function App() {
       baths: p.bathsLabel,
       area: p.areaLabel,
       price: p.priceLabel,
+      status: p.status || "Disponible",
+      featured: Boolean(p.featured),
+      adminFee: formatCurrency(400000),
+      deposit: formatCurrency((p.price || 0) * 2.5),
       bg: p.bg,
       photoLabel: p.photoLabel,
       onEnter: () => setHover(idx),
@@ -727,9 +731,9 @@ export default function App() {
           price: Number(String(propDraft.price).replace(/[^\d]/g, "")) || 0,
           beds: Number(propDraft.beds) || 0,
           baths: Number(propDraft.baths) || 0,
-          area: Number(propDraft.area) || 0,
+          area: 0,
           description: propDraft.description,
-          status: "Disponible",
+          status: String((propDraft as any).status || "Disponible"),
           featured: Boolean(propDraft.featured),
           neighborhood: propDraft.address,
           city: "Caseros",
@@ -740,7 +744,7 @@ export default function App() {
           features: [
             { icon: "bed", label: "Ambientes", val: String(Number(propDraft.beds) || 0) },
             { icon: "bathtub", label: "Baños", val: String(Number(propDraft.baths) || 0) },
-            { icon: "straighten", label: "Superficie", val: `${Number(propDraft.area) || 0} m²` }
+            { icon: "straighten", label: "Superficie", val: `0 m²` }
           ],
           images
         };
@@ -766,8 +770,8 @@ export default function App() {
           price: "",
           beds: "",
           baths: "",
-          area: "",
           description: "",
+          status: "Disponible",
           featured: true,
           services: DEFAULT_SERVICES.slice(0, 3)
         });
@@ -911,8 +915,8 @@ export default function App() {
             price: String(p.price),
             beds: String(p.beds),
             baths: String(p.baths),
-            area: String(p.area),
             description: p.description || "",
+            status: p.status || "Disponible",
             featured: p.featured,
             services: p.services?.slice?.() || DEFAULT_SERVICES.slice(0, 3)
           });

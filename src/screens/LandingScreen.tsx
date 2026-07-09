@@ -4,6 +4,7 @@ import MsIcon from "../components/MsIcon";
 import type { CSSProperties } from "react";
 import Footer from "../components/Footer";
 import type { SettingsRecord } from "../data/models";
+import { badgeStyle, statusKind } from "../lib/ui";
 
 type NavItem = { label: string; active?: boolean };
 type HeroCard = { icon: string; title: string; body: string };
@@ -15,6 +16,10 @@ type PropertyCard = {
   baths: string;
   area: string;
   price: string;
+  status: string;
+  featured: boolean;
+  adminFee: string;
+  deposit: string;
   bg: string;
   photoLabel: string;
   cardStyle: CSSProperties;
@@ -439,13 +444,29 @@ export default function LandingScreen({
                 >
                   {p.photoLabel}
                 </div>
-                <span
+                <div
                   style={css(
-                    "position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;background:#205843;color:#fff;font:700 10px/1 'Plus Jakarta Sans';letter-spacing:.06em"
+                    "position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:7px;align-items:flex-start"
                   )}
                 >
-                  DESTACADA
-                </span>
+                  {p.featured && (
+                    <span
+                      style={css(
+                        "display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;background:#205843;color:#fff;font:700 10px/1 'Plus Jakarta Sans';letter-spacing:.06em"
+                      )}
+                    >
+                      DESTACADA
+                    </span>
+                  )}
+                  <span
+                    style={css(
+                      badgeStyle(statusKind(p.status)) +
+                        ";padding:5px 11px;border-radius:7px;font:700 10px/1 'Plus Jakarta Sans';letter-spacing:.06em;backdrop-filter:blur(10px)"
+                    )}
+                  >
+                    {String(p.status || "Disponible").toUpperCase()}
+                  </span>
+                </div>
                 <span
                   style={css(
                     "position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;color:#123A2F"
@@ -493,6 +514,16 @@ export default function LandingScreen({
                     {p.price}
                   </span>
                   <span style={css("font-size:12.5px;color:#9aa0a3")}>/mes</span>
+                </div>
+                <div style={css("margin-top:10px;display:flex;flex-direction:column;gap:6px")}>
+                  <div style={css("font-size:12.5px;color:#6b7570;line-height:1.35")}>
+                    <span style={css("font-weight:700;color:#3a443f")}>Servicios:</span>{" "}
+                    Gastos administrativos: {p.adminFee}
+                  </div>
+                  <div style={css("font-size:12.5px;color:#6b7570;line-height:1.35")}>
+                    <span style={css("font-weight:700;color:#3a443f")}>Depósito en garantía:</span>{" "}
+                    {p.deposit}
+                  </div>
                 </div>
               </div>
             </div>

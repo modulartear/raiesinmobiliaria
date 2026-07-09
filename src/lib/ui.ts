@@ -7,12 +7,14 @@ export function statusKind(status: string): BadgeKind {
     Verificado: "ok",
     Respondida: "ok",
     Reservado: "warn",
+    Reservada: "warn",
     "En revisión": "warn",
     "En revision": "warn",
     Pendiente: "danger",
     Nueva: "warn",
     Inactivo: "info",
     Alquilado: "info",
+    Alquilada: "info",
     "En proceso": "warn"
   };
   return map[status] || "info";
@@ -28,4 +30,3 @@ export function badgeStyle(kind: BadgeKind): string {
   const chosen = palette[kind];
   return `display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:8px;background:${chosen[1]};color:${chosen[0]};font:700 12px/1 'Plus Jakarta Sans'`;
 }
-
