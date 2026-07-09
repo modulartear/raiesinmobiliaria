@@ -711,6 +711,7 @@ export default function App() {
       setSavingProperty(true);
       try {
         const propertyId = propDraft.id || `prop-${Date.now()}`;
+        const existingProperty = properties.find((p) => p.id === propertyId);
         let images: { url?: string; path?: string; label?: string }[] = [];
 
         if (services.ready && services.storage && propertyUploadPreview.length) {
@@ -722,6 +723,14 @@ export default function App() {
             const url = await getDownloadURL(r);
             images.push({ url, path, label: `FOTO · ${i + 1}` });
           }
+        }
+
+        if (!images.length && existingProperty?.images?.length) {
+          images = existingProperty.images.map((img) => ({
+            url: img.url,
+            path: img.path,
+            label: img.label
+          }));
         }
 
         const payload: Omit<PropertyRecord, "id"> = {
@@ -757,7 +766,8 @@ export default function App() {
           );
           await loadPublicData();
         } else {
-          const next = normalizeProperties([{ id: propertyId, ...payload }, ...properties] as any);
+          const nextBase = properties.filter((p) => p.id !== propertyId);
+          const next = normalizeProperties([{ id: propertyId, ...payload }, ...nextBase] as any);
           setProperties(next);
         }
 
