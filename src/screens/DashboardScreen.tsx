@@ -36,6 +36,7 @@ type SolicitudRow = {
   badge: string;
   docsCount: number;
   approvedCount: number;
+  onRemove: () => void;
 };
 type TenantRow = {
   initial: string;
@@ -905,7 +906,7 @@ export default function DashboardScreen({
                 <span>FECHA</span>
                 <span>INGRESO DECL.</span>
                 <span>ESTADO</span>
-                <span style={css("text-align:right")}>VER</span>
+                <span style={css("text-align:right")}>ACCIONES</span>
               </div>
               {solicitudesFull.map((r, idx) => (
                 <div
@@ -931,7 +932,7 @@ export default function DashboardScreen({
                   <span>
                     <span style={css(r.badge)}>{r.status}</span>
                   </span>
-                  <div style={css("display:flex;justify-content:flex-end")}>
+                  <div style={css("display:flex;justify-content:flex-end;gap:8px")}>
                     <span
                       onClick={() => onOpenRequestReview(r.id)}
                       style={css(
@@ -939,6 +940,14 @@ export default function DashboardScreen({
                       )}
                     >
                       <MsIcon name="visibility" style={{ fontSize: 18 }} />
+                    </span>
+                    <span
+                      onClick={r.onRemove}
+                      style={css(
+                        "width:32px;height:32px;border-radius:8px;background:#F4F5F5;display:flex;align-items:center;justify-content:center;color:#b23b3b;cursor:pointer"
+                      )}
+                    >
+                      <MsIcon name="delete" style={{ fontSize: 18 }} />
                     </span>
                   </div>
                 </div>
@@ -1676,11 +1685,31 @@ export default function DashboardScreen({
                     <div style={css("font:800 13px/1 'Plus Jakarta Sans';color:#123A2F;margin-bottom:6px")}>
                       {requestReview.allApproved ? "Documentación aprobada" : "Pendiente de aprobación"}
                     </div>
-                    <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
-                      {requestReview.allApproved
-                        ? `Contacto: ${requestReview.email || "Sin email"} · ${requestReview.phone || "Sin teléfono"}`
-                        : "Aprobá todos los archivos para dejar la solicitud en estado Aprobado."}
-                    </div>
+                    {requestReview.allApproved ? (
+                      <div style={css("display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                        <span>Contacto: {requestReview.email || "Sin email"}</span>
+                        <span style={css("display:inline-flex;align-items:center;gap:8px")}>
+                          <span>{requestReview.phone || "Sin teléfono"}</span>
+                          {requestReview.phone ? (
+                            <a
+                              href={`https://wa.me/${String(requestReview.phone).replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={css(
+                                "width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#25D366;color:#fff;text-decoration:none;box-shadow:0 10px 20px -12px rgba(37,211,102,.9)"
+                              )}
+                              title="Contactar por WhatsApp"
+                            >
+                              <MsIcon name="chat" style={{ fontSize: 16 }} />
+                            </a>
+                          ) : null}
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                        Aprobá todos los archivos para dejar la solicitud en estado Aprobado.
+                      </div>
+                    )}
                   </div>
                 </div>
 

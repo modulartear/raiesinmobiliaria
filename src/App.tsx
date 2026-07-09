@@ -944,6 +944,47 @@ export default function App() {
     });
   }
 
+  async function removeRequest(id: string) {
+    requireAdmin(async () => {
+      const review = requestReviewMap.find((r) => r.id === id);
+      const ok = window.confirm("¿Eliminar esta solicitud y toda su documentación asociada?");
+      if (!ok) return;
+
+      try {
+        if (services.ready && services.db) {
+          await deleteDoc(doc(services.db, "rental_requests", id));
+          if (review?.docs?.length) {
+            for (const item of review.docs) {
+              await deleteDoc(doc(services.db, "documents", item.id));
+            }
+          }
+          if (review?.verificationId) {
+            try {
+              await deleteDoc(doc(services.db, "verification_requests", review.verificationId));
+            } catch {
+            }
+          }
+          if (reviewingRequestId === id) {
+            setReviewingRequestId("");
+          }
+          await loadPrivateData();
+          return;
+        }
+
+        setRequests((prev) => prev.filter((r) => r.id !== id));
+        if (review?.docs?.length) {
+          const ids = new Set(review.docs.map((d) => d.id));
+          setDocuments((prev) => prev.filter((d) => !ids.has(d.id)));
+        }
+        if (reviewingRequestId === id) {
+          setReviewingRequestId("");
+        }
+      } catch (e: any) {
+        setAppError(e?.message || String(e));
+      }
+    });
+  }
+
   const sidebarItems = useMemo(() => {
     const items = [
       { label: "Dashboard", icon: "dashboard" },
@@ -1101,7 +1142,8 @@ export default function App() {
       status: r.allApproved ? "Aprobado" : r.status,
       badge: badgeStyle(statusKind(r.allApproved ? "Aprobado" : r.status)),
       docsCount: r.docs.length,
-      approvedCount: r.approvedCount
+      approvedCount: r.approvedCount,
+      onRemove: () => void removeRequest(r.id)
     }));
   }, [requestReviewMap]);
 
