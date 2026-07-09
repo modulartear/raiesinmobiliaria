@@ -1806,6 +1806,8 @@ export default function App() {
           docs={selectedProperty.docs?.length ? selectedProperty.docs : DEFAULT_DOCS}
           similar={similar}
           price={selectedProperty.priceLabel}
+          adminFee={formatCurrency(400000)}
+          deposit={formatCurrency((selectedProperty.price || 0) * 1.5)}
           onOpenRequest={() => setActionKind("request")}
           onOpenConsult={() => setActionKind("consult")}
           onOpenWhatsapp={openWhatsapp}

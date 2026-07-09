@@ -22,6 +22,8 @@ export default function PropertyScreen({
   docs,
   similar,
   price,
+  adminFee,
+  deposit,
   onOpenRequest,
   onOpenConsult,
   onOpenWhatsapp,
@@ -49,6 +51,8 @@ export default function PropertyScreen({
   docs: string[];
   similar: SimilarCard[];
   price: string;
+  adminFee: string;
+  deposit: string;
   onOpenRequest: () => void;
   onOpenConsult: () => void;
   onOpenWhatsapp: () => void;
@@ -392,6 +396,22 @@ export default function PropertyScreen({
                     {d}
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div
+              style={css(
+                "background:#fff;border-radius:18px;padding:18px 20px;border:1px solid rgba(18,58,47,.08);box-shadow:0 12px 34px -24px rgba(18,58,47,.34)"
+              )}
+            >
+              <div style={css("font:700 14.5px 'Plus Jakarta Sans';color:#123A2F;margin-bottom:10px")}>
+                Servicios
+              </div>
+              <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45")}>
+                Gastos administrativos: <strong style={{ color: "#123A2F" }}>{adminFee}</strong>
+              </div>
+              <div style={css("font-size:12.5px;color:#5a6460;line-height:1.45;margin-top:6px")}>
+                Depósito en garantía: <strong style={{ color: "#123A2F" }}>{deposit}</strong>
               </div>
             </div>
           </aside>
