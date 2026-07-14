@@ -2,6 +2,7 @@ import { css } from "../lib/css";
 import MsIcon from "./MsIcon";
 import type { VerificationConfig } from "../data/models";
 import { useMemo, useRef, useState } from "react";
+import { logoRaiesUrl } from "../lib/assets";
 
 type ResultState =
   | { status: ""; message: ""; missing: string[] }
@@ -43,6 +44,7 @@ export default function VerificationModal({
   const [deed, setDeed] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultState>({ status: "", message: "", missing: [] });
+  const [overlay, setOverlay] = useState<"" | "loading" | "success">("");
 
   const tenantInputRef = useRef<HTMLInputElement | null>(null);
   const guarantorInputRef = useRef<HTMLInputElement | null>(null);
@@ -136,6 +138,8 @@ export default function VerificationModal({
     }
     const years = Number(String(guarantorYears).replace(/[^\d]/g, "")) || 0;
     setLoading(true);
+    setOverlay("loading");
+    let outcomeStatus = "" as string;
     try {
       await onSubmit({
         optionKey,
@@ -145,10 +149,22 @@ export default function VerificationModal({
         guarantorSeniorityYears: years,
         deedInLocation,
         files: { tenantPayslip, guarantorPayslips, deed },
-        setResult
+        setResult: (r) => {
+          outcomeStatus = r.status;
+          setResult(r);
+        }
       });
+      if (outcomeStatus === "PreAprobado") {
+        setOverlay("success");
+        window.setTimeout(() => {
+          close();
+          setOverlay("");
+        }, 1200);
+        return;
+      }
     } finally {
       setLoading(false);
+      if (outcomeStatus !== "PreAprobado") setOverlay("");
     }
   }
 
@@ -161,12 +177,91 @@ export default function VerificationModal({
         "position:fixed;inset:0;z-index:410;background:rgba(8,20,16,.62);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px"
       )}
     >
+      <style>{`
+        @keyframes raiesLogoPulse {
+          0% { transform: translateZ(0) scale(1); }
+          50% { transform: translateZ(0) scale(1.06); }
+          100% { transform: translateZ(0) scale(1); }
+        }
+        @keyframes raiesSpinner {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes raiesFadeUp {
+          0% { opacity: 0; transform: translateY(6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       <div
         className="modal-card modal-card--verification"
         style={css(
-          "width:min(720px,100%);background:#fff;border-radius:22px;padding:28px 28px 24px;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08)"
+          "position:relative;width:min(720px,100%);background:#fff;border-radius:22px;padding:28px 28px 24px;box-shadow:0 34px 80px -24px rgba(0,0,0,.45);border:1px solid rgba(18,58,47,.08)"
         )}
       >
+        {overlay && (
+          <div
+            style={css(
+              "position:absolute;inset:0;border-radius:22px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:30"
+            )}
+          >
+            <div
+              style={css(
+                "width:min(420px,92%);background:#fff;border-radius:22px;border:1px solid rgba(18,58,47,.10);box-shadow:0 34px 90px -30px rgba(0,0,0,.35);padding:26px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;animation:raiesFadeUp .22s ease-out"
+              )}
+            >
+              <div style={css("position:relative;width:92px;height:92px;margin-bottom:14px")}>
+                <div
+                  style={css(
+                    "position:absolute;inset:-8px;border-radius:999px;border:2px solid rgba(201,163,77,.35);border-top-color:#C9A34D;animation:raiesSpinner 1s linear infinite"
+                  )}
+                />
+                <div
+                  style={css(
+                    "position:absolute;inset:0;border-radius:999px;background:linear-gradient(180deg, rgba(201,163,77,.18), rgba(18,58,47,.06));display:flex;align-items:center;justify-content:center"
+                  )}
+                >
+                  <img
+                    src={logoRaiesUrl}
+                    alt="RAIES"
+                    style={{
+                      width: 66,
+                      height: 66,
+                      borderRadius: 999,
+                      objectFit: "cover",
+                      boxShadow: "0 14px 26px -16px rgba(0,0,0,.55)",
+                      animation: overlay === "loading" ? "raiesLogoPulse 1.05s ease-in-out infinite" : "none"
+                    }}
+                  />
+                </div>
+              </div>
+
+              {overlay === "loading" ? (
+                <>
+                  <div style={css("font:900 16px/1 'Plus Jakarta Sans';color:#123A2F")}>
+                    Aguarde
+                  </div>
+                  <div style={css("font-size:13px;color:#6b7570;line-height:1.45;margin-top:8px")}>
+                    Estamos enviando la documentación. No cierres esta ventana.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={css(
+                      "font-family:'Schibsted Grotesk';font-weight:900;font-size:36px;letter-spacing:-.02em;color:#1c7a4d"
+                    )}
+                  >
+                    PreAprobado
+                  </div>
+                  <div style={css("font-size:13px;color:#6b7570;line-height:1.45;margin-top:8px")}>
+                    Listo. Cerrando…
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         <div
           className="modal-head"
           style={css(
@@ -187,8 +282,10 @@ export default function VerificationModal({
           </div>
           <button
             onClick={close}
+            disabled={Boolean(overlay)}
             style={css(
-              "width:36px;height:36px;border-radius:10px;border:none;background:#F4F5F5;color:#123A2F;cursor:pointer;display:flex;align-items:center;justify-content:center"
+              "width:36px;height:36px;border-radius:10px;border:none;background:#F4F5F5;color:#123A2F;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:" +
+                (overlay ? ".45" : "1")
             )}
           >
             <MsIcon name="close" style={{ fontSize: 20 }} />
