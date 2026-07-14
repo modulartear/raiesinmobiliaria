@@ -1961,14 +1961,118 @@ export default function App() {
           });
 
           if (!services.ready || !services.db || !services.storage) {
+            // #region debug-point D:services-not-ready
+            fetch("http://127.0.0.1:7777/event", {
+              method: "POST",
+              body: JSON.stringify({
+                sessionId: "verification-auth-save",
+                runId: "pre",
+                hypothesisId: "D",
+                location: "src/App.tsx:1963",
+                msg: "[DEBUG] Verificacion abortada por servicios Firebase incompletos",
+                data: {
+                  ready: services.ready,
+                  hasDb: Boolean(services.db),
+                  hasStorage: Boolean(services.storage),
+                  hasAuth: Boolean(services.auth)
+                },
+                ts: Date.now()
+              })
+            }).catch(() => {});
+            // #endregion
             return;
           }
 
+          const debugTraceId = `verification-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          // #region debug-point A:submit-start
+          fetch("http://127.0.0.1:7777/event", {
+            method: "POST",
+            body: JSON.stringify({
+              sessionId: "verification-auth-save",
+              runId: "pre",
+              hypothesisId: "A",
+              traceId: debugTraceId,
+              location: "src/App.tsx:1967",
+              msg: "[DEBUG] Inicio guardado de verificacion",
+              data: {
+                projectId: (services.app as any)?.options?.projectId || "",
+                authDomain: (services.app as any)?.options?.authDomain || "",
+                currentUserUid: currentUser?.uid || "",
+                currentUserIsAnonymous: Boolean(currentUser?.isAnonymous),
+                optionKey: opt.key,
+                fileCount:
+                  (files.tenantPayslip ? 1 : 0) +
+                  (files.deed ? 1 : 0) +
+                  (files.guarantorPayslips || []).length
+              },
+              ts: Date.now()
+            })
+          }).catch(() => {});
+          // #endregion
+
           if (services.auth && !currentUser) {
             try {
+              // #region debug-point B:anonymous-auth-attempt
+              fetch("http://127.0.0.1:7777/event", {
+                method: "POST",
+                body: JSON.stringify({
+                  sessionId: "verification-auth-save",
+                  runId: "pre",
+                  hypothesisId: "B",
+                  traceId: debugTraceId,
+                  location: "src/App.tsx:1991",
+                  msg: "[DEBUG] Intentando signInAnonymously",
+                  data: {
+                    projectId: (services.app as any)?.options?.projectId || "",
+                    authDomain: (services.app as any)?.options?.authDomain || ""
+                  },
+                  ts: Date.now()
+                })
+              }).catch(() => {});
+              // #endregion
               await signInAnonymously(services.auth);
+              // #region debug-point B:anonymous-auth-success
+              fetch("http://127.0.0.1:7777/event", {
+                method: "POST",
+                body: JSON.stringify({
+                  sessionId: "verification-auth-save",
+                  runId: "pre",
+                  hypothesisId: "B",
+                  traceId: debugTraceId,
+                  location: "src/App.tsx:2007",
+                  msg: "[DEBUG] signInAnonymously OK",
+                  data: {
+                    projectId: (services.app as any)?.options?.projectId || "",
+                    authCurrentUid: services.auth.currentUser?.uid || "",
+                    authCurrentAnonymous: Boolean(services.auth.currentUser?.isAnonymous)
+                  },
+                  ts: Date.now()
+                })
+              }).catch(() => {});
+              // #endregion
             } catch (e: any) {
               const code = String(e?.code || "");
+              // #region debug-point B:anonymous-auth-error
+              fetch("http://127.0.0.1:7777/event", {
+                method: "POST",
+                body: JSON.stringify({
+                  sessionId: "verification-auth-save",
+                  runId: "pre",
+                  hypothesisId: "B",
+                  traceId: debugTraceId,
+                  location: "src/App.tsx:2023",
+                  msg: "[DEBUG] signInAnonymously fallo",
+                  data: {
+                    code,
+                    message: String(e?.message || ""),
+                    name: String(e?.name || ""),
+                    projectId: (services.app as any)?.options?.projectId || "",
+                    authDomain: (services.app as any)?.options?.authDomain || ""
+                  },
+                  ts: Date.now()
+                })
+              }).catch(() => {});
+              // #endregion
               if (code.includes("auth/admin-restricted-operation")) {
                 setAppError(
                   "Activá el proveedor Anonimo en Firebase Authentication para guardar verificaciones online."
@@ -1985,6 +2089,25 @@ export default function App() {
           const applicantKey = applicantKeyFrom(name, email, phone);
 
           const verificationRef = doc(collection(db, "verification_requests"));
+          // #region debug-point C:before-verification-write
+          fetch("http://127.0.0.1:7777/event", {
+            method: "POST",
+            body: JSON.stringify({
+              sessionId: "verification-auth-save",
+              runId: "pre",
+              hypothesisId: "C",
+              traceId: debugTraceId,
+              location: "src/App.tsx:2054",
+              msg: "[DEBUG] Preparando escritura en verification_requests",
+              data: {
+                verificationId: verificationRef.id,
+                applicantKey,
+                preApproved
+              },
+              ts: Date.now()
+            })
+          }).catch(() => {});
+          // #endregion
           await setDoc(
             verificationRef,
             {
