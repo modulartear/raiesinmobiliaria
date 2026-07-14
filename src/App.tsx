@@ -2088,121 +2088,229 @@ export default function App() {
           const storage = services.storage;
           const applicantKey = applicantKeyFrom(name, email, phone);
 
-          const verificationRef = doc(collection(db, "verification_requests"));
-          // #region debug-point C:before-verification-write
-          fetch("http://127.0.0.1:7777/event", {
-            method: "POST",
-            body: JSON.stringify({
-              sessionId: "verification-auth-save",
-              runId: "pre",
-              hypothesisId: "C",
-              traceId: debugTraceId,
-              location: "src/App.tsx:2054",
-              msg: "[DEBUG] Preparando escritura en verification_requests",
-              data: {
-                verificationId: verificationRef.id,
-                applicantKey,
-                preApproved
-              },
-              ts: Date.now()
-            })
-          }).catch(() => {});
-          // #endregion
-          await setDoc(
-            verificationRef,
-            {
-              name,
-              email,
-              phone,
-              optionKey: opt.key,
-              optionTitle: opt.title,
-              guarantorSeniorityYears,
-              deedInLocation,
-              applicantKey,
-              status: preApproved ? "PreAprobado" : "Pendiente",
-              missing,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            },
-            { merge: true }
-          );
-
-          const uploaded: any[] = [];
-
-          async function uploadOne(file: File, tag: string) {
-            const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-            const path = `verifications/${verificationRef.id}/${Date.now()}-${tag}-${safeName}`;
-            const r = storageRef(storage, path);
-            await uploadBytes(r, file);
-            const url = await getDownloadURL(r);
-            uploaded.push({
-              tag,
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              path,
-              url
-            });
-          }
-
-          if (files.tenantPayslip) {
-            await uploadOne(files.tenantPayslip, "tenant_payslip");
-          }
-          for (let i = 0; i < (files.guarantorPayslips || []).length; i += 1) {
-            await uploadOne(files.guarantorPayslips[i], `guarantor_payslip_${i + 1}`);
-          }
-          if (files.deed) {
-            await uploadOne(files.deed, "deed");
-          }
-
-          await setDoc(
-            verificationRef,
-            {
-              files: uploaded,
-              updatedAt: serverTimestamp()
-            },
-            { merge: true }
-          );
-
           try {
-            for (const u of uploaded) {
-              const tag = String(u?.tag || "");
-              const fileName = String(u?.name || "");
-              const url = typeof u?.url === "string" ? u.url : "";
-              if (!tag || !url) continue;
-
-              let label = "Documento";
-              let icon = "description";
-              if (tag === "tenant_payslip") {
-                label = "Recibo inquilino";
-              } else if (tag.startsWith("guarantor_payslip_")) {
-                const n = tag.replace("guarantor_payslip_", "");
-                label = `Recibo garante ${n}`;
-              } else if (tag === "deed") {
-                label = "Escritura";
-                icon = "gavel";
-              }
-
-              const docId = `${verificationRef.id}__${tag}`;
-              await setDoc(
-                doc(db, "documents", docId),
-                {
-                  tenantName: name,
-                  name: fileName ? `${label} · ${fileName}` : label,
-                  status: preApproved ? "PreAprobado" : "Pendiente",
-                  icon,
-                  url,
-                  approved: false,
-                  applicantKey,
+            const verificationRef = doc(collection(db, "verification_requests"));
+            // #region debug-point C:before-verification-write
+            fetch("http://127.0.0.1:7777/event", {
+              method: "POST",
+              body: JSON.stringify({
+                sessionId: "verification-auth-save",
+                runId: "pre",
+                hypothesisId: "C",
+                traceId: debugTraceId,
+                location: "src/App.tsx:2054",
+                msg: "[DEBUG] Preparando escritura en verification_requests",
+                data: {
                   verificationId: verificationRef.id,
-                  tag,
-                  createdAt: serverTimestamp(),
-                  updatedAt: serverTimestamp()
+                  applicantKey,
+                  preApproved
                 },
-                { merge: true }
-              );
+                ts: Date.now()
+              })
+            }).catch(() => {});
+            // #endregion
+
+            await setDoc(
+              verificationRef,
+              {
+                name,
+                email,
+                phone,
+                optionKey: opt.key,
+                optionTitle: opt.title,
+                guarantorSeniorityYears,
+                deedInLocation,
+                applicantKey,
+                status: preApproved ? "PreAprobado" : "Pendiente",
+                missing,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+              },
+              { merge: true }
+            );
+
+            // #region debug-point C:verification-write-ok
+            fetch("http://127.0.0.1:7777/event", {
+              method: "POST",
+              body: JSON.stringify({
+                sessionId: "verification-auth-save",
+                runId: "pre",
+                hypothesisId: "C",
+                traceId: debugTraceId,
+                location: "src/App.tsx:2080",
+                msg: "[DEBUG] verification_requests grabado OK",
+                data: {
+                  verificationId: verificationRef.id
+                },
+                ts: Date.now()
+              })
+            }).catch(() => {});
+            // #endregion
+
+            await setDoc(
+              doc(db, "rental_requests", verificationRef.id),
+              {
+                name,
+                email,
+                phone,
+                propertyId: selectedProperty.id,
+                propertyTitle: selectedProperty.title,
+                monthlyIncome: 0,
+                status: "En revisión",
+                applicantKey,
+                verificationId: verificationRef.id,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+              },
+              { merge: true }
+            );
+
+            const uploaded: any[] = [];
+
+            async function uploadOne(file: File, tag: string) {
+              const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+              const path = `verifications/${verificationRef.id}/${Date.now()}-${tag}-${safeName}`;
+              const r = storageRef(storage, path);
+              // #region debug-point E:before-storage-upload
+              fetch("http://127.0.0.1:7777/event", {
+                method: "POST",
+                body: JSON.stringify({
+                  sessionId: "verification-auth-save",
+                  runId: "pre",
+                  hypothesisId: "E",
+                  traceId: debugTraceId,
+                  location: "src/App.tsx:2098",
+                  msg: "[DEBUG] Subiendo archivo a Storage",
+                  data: {
+                    tag,
+                    path,
+                    size: file.size,
+                    type: file.type
+                  },
+                  ts: Date.now()
+                })
+              }).catch(() => {});
+              // #endregion
+              await uploadBytes(r, file);
+              const url = await getDownloadURL(r);
+              uploaded.push({
+                tag,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                path,
+                url
+              });
             }
-          } catch {
+
+            if (files.tenantPayslip) {
+              await uploadOne(files.tenantPayslip, "tenant_payslip");
+            }
+            for (let i = 0; i < (files.guarantorPayslips || []).length; i += 1) {
+              await uploadOne(files.guarantorPayslips[i], `guarantor_payslip_${i + 1}`);
+            }
+            if (files.deed) {
+              await uploadOne(files.deed, "deed");
+            }
+
+            await setDoc(
+              verificationRef,
+              {
+                files: uploaded,
+                updatedAt: serverTimestamp()
+              },
+              { merge: true }
+            );
+
+            try {
+              for (const u of uploaded) {
+                const tag = String(u?.tag || "");
+                const fileName = String(u?.name || "");
+                const url = typeof u?.url === "string" ? u.url : "";
+                if (!tag || !url) continue;
+
+                let label = "Documento";
+                let icon = "description";
+                if (tag === "tenant_payslip") {
+                  label = "Recibo inquilino";
+                } else if (tag.startsWith("guarantor_payslip_")) {
+                  const n = tag.replace("guarantor_payslip_", "");
+                  label = `Recibo garante ${n}`;
+                } else if (tag === "deed") {
+                  label = "Escritura";
+                  icon = "gavel";
+                }
+
+                const docId = `${verificationRef.id}__${tag}`;
+                await setDoc(
+                  doc(db, "documents", docId),
+                  {
+                    tenantName: name,
+                    name: fileName ? `${label} · ${fileName}` : label,
+                    status: preApproved ? "PreAprobado" : "Pendiente",
+                    icon,
+                    url,
+                    approved: false,
+                    applicantKey,
+                    verificationId: verificationRef.id,
+                    tag,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                  },
+                  { merge: true }
+                );
+              }
+            } catch (documentsError: any) {
+              // #region debug-point E:documents-write-error
+              fetch("http://127.0.0.1:7777/event", {
+                method: "POST",
+                body: JSON.stringify({
+                  sessionId: "verification-auth-save",
+                  runId: "pre",
+                  hypothesisId: "E",
+                  traceId: debugTraceId,
+                  location: "src/App.tsx:2170",
+                  msg: "[DEBUG] Error grabando documents",
+                  data: {
+                    code: String(documentsError?.code || ""),
+                    message: String(documentsError?.message || "")
+                  },
+                  ts: Date.now()
+                })
+              }).catch(() => {});
+              // #endregion
+              throw documentsError;
+            }
+          } catch (persistError: any) {
+            const code = String(persistError?.code || "");
+            const message = String(persistError?.message || "");
+            // #region debug-point E:persist-error
+            fetch("http://127.0.0.1:7777/event", {
+              method: "POST",
+              body: JSON.stringify({
+                sessionId: "verification-auth-save",
+                runId: "pre",
+                hypothesisId: "E",
+                traceId: debugTraceId,
+                location: "src/App.tsx:2189",
+                msg: "[DEBUG] Error persistiendo verificacion",
+                data: {
+                  code,
+                  message
+                },
+                ts: Date.now()
+              })
+            }).catch(() => {});
+            // #endregion
+
+            if (code.includes("permission-denied") || code.includes("storage/unauthorized")) {
+              setAppError(
+                `Firebase está rechazando el guardado por reglas/permisos. ${code || message || "Revisá Firestore y Storage."}`
+              );
+            } else {
+              setAppError(message || code || "No se pudo guardar la verificación.");
+            }
+            return;
           }
 
           if (currentUser && !currentUser.isAnonymous) {
